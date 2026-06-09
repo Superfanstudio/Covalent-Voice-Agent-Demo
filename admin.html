@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin · Covalent Voice Agents</title>
+<!-- Document parsers: Word (.docx) via mammoth, PDF via pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+<style>
+  :root {
+    --ink: #2b3138; --ink-soft: #5b6671; --line: #e2e9f1; --bg: #f4f8fd; --card: #fff;
+    --brand: #1f8fe8; --brand-deep: #1450c0; --brand-light: #54c1f5;
+    --brand-tint: #e8f3fe; --brand-tint-line: #c4e1fb;
+    --accent: #1450c0; --accent-soft: #eaf2ff;
+    --user: #1450c0; --agent: #1f8fe8;
+    --shadow: 0 18px 50px -24px rgba(20,40,70,.35); --radius: 16px;
+    font-synthesis: none;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, #def0fe 0%, transparent 55%),
+      radial-gradient(900px 500px at 0% 0%, #e9f1ff 0%, transparent 50%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 16px clamp(18px, 4vw, 44px); border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.7); backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo { display: block; height: 46px; width: auto; }
+  .brand .sub { border-left: 1px solid var(--line); padding-left: 14px; }
+  .brand .sub b { font-size: 14px; }
+  .brand .sub small { display: block; color: var(--ink-soft); font-size: 11.5px; }
+  header .right { display: flex; align-items: center; gap: 12px; }
+  header a.back { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; }
+
+  .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 4px 14px -10px rgba(20,40,70,.3); }
+  .tabs button {
+    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
+    background: transparent; border: none; padding: 8px 16px; border-radius: 9px; cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff;
+    box-shadow: 0 8px 18px -10px rgba(31,143,232,.6);
+  }
+
+  main { max-width: 1180px; margin: 0 auto; padding: clamp(20px, 4vw, 36px) clamp(18px, 4vw, 44px) 64px; }
+  h2 { font-size: 19px; letter-spacing: -.02em; margin: 0 0 4px; }
+  .muted { color: var(--ink-soft); font-size: 13.5px; }
+  .banner {
+    background: #fff5f3; border: 1px solid #f6cfc8; color: #9a3b30;
+    padding: 12px 16px; border-radius: 12px; font-size: 13.5px; margin-bottom: 18px;
+  }
+  .hidden { display: none !important; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); }
+
+  /* Conversations layout */
+  .convo-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .convo-grid { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th { text-align: left; color: var(--ink-soft); font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .04em; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr { cursor: pointer; transition: background .12s; }
+  tbody tr:hover { background: var(--brand-tint); }
+  tbody tr[aria-selected="true"] { background: var(--accent-soft); }
+  .idcell { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--ink-soft); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: var(--brand-tint); color: var(--brand-deep); border: 1px solid var(--brand-tint-line); }
+  .tag.ended { background: #eef2f6; color: var(--ink-soft); border-color: var(--line); }
+  .tag.live { background: #e6f7ee; color: #137a48; border-color: #bce6cf; }
+  .tag.error { background: #fdecea; color: #b3261e; border-color: #f3c4bf; }
+
+  .detail { padding: 18px 20px; min-height: 280px; }
+  .detail .meta { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; }
+  .detail .meta code { background: #eef2f6; padding: 2px 6px; border-radius: 5px;
+    font-size: 11.5px; color: var(--ink); }
+  .turns { display: flex; flex-direction: column; gap: 10px; }
+  .turn { max-width: 86%; }
+  .turn .who { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+  .turn .bubble { padding: 9px 13px; border-radius: 13px; font-size: 14px; line-height: 1.45; }
+  .turn.agent { align-self: flex-start; }
+  .turn.agent .who { color: var(--agent); }
+  .turn.agent .bubble { background: #eaf4fe; border: 1px solid #cfe6fb; border-bottom-left-radius: 5px; }
+  .turn.user { align-self: flex-end; text-align: right; }
+  .turn.user .who { color: var(--user); }
+  .turn.user .bubble { background: var(--accent-soft); border: 1px solid #d8e3ff; border-bottom-right-radius: 5px; text-align: left; }
+  .placeholder { color: #93a1b1; font-size: 14px; text-align: center; margin: 60px 0; }
+
+  /* Knowledge base */
+  .kb-grid { display: grid; gap: 20px; }
+  form.ingest { padding: 18px 20px; display: grid; gap: 12px; }
+  label.fld { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); display: grid; gap: 6px; }
+  input[type=text], textarea {
+    font: inherit; font-size: 14px; color: var(--ink); background: #fff;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%;
+  }
+  textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button.btn {
+    font: inherit; font-weight: 600; font-size: 14px; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep)); border: none;
+    padding: 10px 18px; border-radius: 10px; box-shadow: 0 8px 18px -10px rgba(31,143,232,.6);
+  }
+  button.btn[disabled] { opacity: .55; cursor: default; }
+  button.ghost { background: #fff; color: var(--ink-soft); border: 1px solid var(--line); box-shadow: none; }
+  button.del { background: #fff; color: #b3261e; border: 1px solid #f3c4bf; box-shadow: none;
+    font-size: 12.5px; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  input[type=file] { font-size: 13px; }
+  .docs { padding: 4px 0; }
+  .doc { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 16px; border-bottom: 1px solid var(--line); }
+  .doc:last-child { border-bottom: none; }
+  .doc .t { font-weight: 600; font-size: 14px; }
+  .doc .s { font-size: 12px; color: var(--ink-soft); }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13.5px;
+    box-shadow: var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+    background: rgba(20,40,70,.28); backdrop-filter: blur(4px); padding: 20px; }
+  .login { width: 100%; max-width: 380px; padding: 26px 26px 22px; text-align: center; }
+  .login input[type=password] { width: 100%; }
+  .login .row { justify-content: center; }
+
+  /* Upload dropzone + queue */
+  .dropzone { display: block; border: 2px dashed var(--brand-tint-line); border-radius: 14px;
+    background: #fbfdff; padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--brand); background: var(--brand-tint); }
+  .dz-icon { font-size: 26px; color: var(--brand); line-height: 1; margin-bottom: 8px; }
+  .dz-inner b { font-size: 15px; }
+  .queue { display: grid; gap: 8px; margin: 14px 0 4px; }
+  .queue:empty { display: none; }
+  .qitem { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 13px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .qitem .nm { font-weight: 600; }
+  .qitem .st { font-size: 12px; color: var(--ink-soft); }
+  .qitem.ready .st { color: #137a48; }
+  .qitem.err .st { color: #b3261e; }
+  .qitem .x { cursor: pointer; color: var(--ink-soft); border: none; background: none; font-size: 16px; line-height: 1; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo" src="/covalent-medical-logo.svg" alt="Covalent Medical" />
+      <div class="sub"><b>Voice Agents</b><small>Admin console</small></div>
+    </div>
+    <div class="right">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="conversations" aria-selected="true">Conversations</button>
+        <button role="tab" data-tab="kb" aria-selected="false">Knowledge Base</button>
+      </div>
+      <a class="back" href="/">← Live demo</a>
+    </div>
+  </header>
+
+  <main>
+    <div id="banner" class="banner hidden"></div>
+
+    <!-- CONVERSATIONS -->
+    <section id="view-conversations">
+      <h2>Conversations</h2>
+      <p class="muted" id="convCount">Loading…</p>
+      <div class="convo-grid" style="margin-top:14px">
+        <div class="card" style="overflow:hidden">
+          <table>
+            <thead><tr><th>ID</th><th>Agent</th><th>Voice</th><th>Started</th><th>Turns</th><th>Status</th></tr></thead>
+            <tbody id="convRows"></tbody>
+          </table>
+        </div>
+        <div class="card detail" id="convDetail">
+          <div class="placeholder">Select a conversation to read its transcript.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KNOWLEDGE BASE -->
+    <section id="view-kb" class="hidden">
+      <h2>Knowledge Base</h2>
+      <p class="muted">Upload documents — PDF, Word (.docx), text, or markdown. Each is parsed and chunked automatically; that's what the agent searches during a call.</p>
+      <div class="kb-grid" style="margin-top:14px">
+        <div class="card ingest">
+          <label class="dropzone" id="dropzone">
+            <input type="file" id="kbFiles" multiple hidden
+              accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" />
+            <div class="dz-inner">
+              <div class="dz-icon">⬆</div>
+              <div><b>Drop files here</b> or click to browse</div>
+              <div class="muted">PDF · Word (.docx) · .txt · .md</div>
+            </div>
+          </label>
+          <div class="queue" id="queue"></div>
+          <div class="row">
+            <button type="button" class="btn" id="ingestBtn" disabled>Ingest</button>
+            <span class="muted" id="ingestHint"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="doc" style="border-bottom:1px solid var(--line)">
+            <div class="t">Documents</div>
+            <button class="ghost" id="refreshDocs" style="font-size:12.5px;padding:6px 12px;border-radius:8px">Refresh</button>
+          </div>
+          <div class="docs" id="docsList"><div class="placeholder">Loading…</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Admin login overlay (shown only when the server requires a password) -->
+  <div class="overlay hidden" id="loginOverlay">
+    <form class="card login" id="loginForm">
+      <img class="logo" src="/covalent-medical-logo.svg" alt="Covalent Medical" style="height:40px" />
+      <h3 style="margin:14px 0 2px;font-size:17px">Admin sign-in</h3>
+      <p class="muted" style="margin:0 0 14px">Enter the admin password to view conversations and manage the knowledge base.</p>
+      <input type="password" id="loginPw" placeholder="Admin password" autocomplete="current-password" />
+      <div class="row" style="margin-top:12px">
+        <button type="submit" class="btn">Unlock</button>
+        <span class="muted" id="loginErr" style="color:#b3261e"></span>
+      </div>
+    </form>
+  </div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const banner = $("banner"), toastEl = $("toast");
+
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add("show");
+  setTimeout(() => toastEl.classList.remove("show"), 2200);
+}
+function showBanner(msg) { banner.textContent = msg; banner.classList.remove("hidden"); }
+
+const adminPw = () => sessionStorage.getItem("cv_admin_pw") || "";
+async function api(path, opts = {}) {
+  const headers = Object.assign({}, opts.headers, { "x-admin-password": adminPw() });
+  const r = await fetch(path, { ...opts, headers });
+  let data = null;
+  try { data = await r.json(); } catch {}
+  if (r.status === 401) { showLogin(); }
+  else if (r.status === 503) showBanner(data?.error || "Supabase isn't configured yet — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, then run supabase/schema.sql.");
+  return { ok: r.ok, status: r.status, data };
+}
+
+/* ====== Admin login ====== */
+const loginOverlay = $("loginOverlay");
+function showLogin() { loginOverlay.classList.remove("hidden"); setTimeout(() => $("loginPw").focus(), 50); }
+function hideLogin() { loginOverlay.classList.add("hidden"); }
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pw = $("loginPw").value;
+  sessionStorage.setItem("cv_admin_pw", pw);
+  // Verify against a protected endpoint.
+  const r = await fetch("/api/kb/docs", { headers: { "x-admin-password": pw } });
+  if (r.status === 401) { $("loginErr").textContent = "Wrong password"; sessionStorage.removeItem("cv_admin_pw"); return; }
+  $("loginErr").textContent = ""; $("loginPw").value = "";
+  hideLogin();
+  loadConversations(); loadDocs();
+});
+const fmt = (iso) => iso ? new Date(iso).toLocaleString() : "—";
+
+/* ====== Tabs ====== */
+const tabs = document.querySelectorAll(".tabs button");
+tabs.forEach((b) => b.addEventListener("click", () => {
+  tabs.forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  const tab = b.dataset.tab;
+  $("view-conversations").classList.toggle("hidden", tab !== "conversations");
+  $("view-kb").classList.toggle("hidden", tab !== "kb");
+  if (tab === "conversations") loadConversations();
+  if (tab === "kb") loadDocs();
+}));
+
+/* ====== Conversations ====== */
+let selectedId = null;
+async function loadConversations() {
+  const { data } = await api("/api/conversations");
+  const rows = data?.conversations || [];
+  $("convCount").textContent = rows.length ? `${rows.length} conversation${rows.length === 1 ? "" : "s"}` : "No conversations yet.";
+  const tbody = $("convRows");
+  tbody.innerHTML = "";
+  for (const c of rows) {
+    const tr = document.createElement("tr");
+    tr.setAttribute("aria-selected", String(c.id === selectedId));
+    tr.innerHTML = `
+      <td class="idcell">${c.id.slice(0, 8)}…</td>
+      <td>${c.agent || "—"}</td>
+      <td>${c.voice || "—"}</td>
+      <td>${fmt(c.started_at)}</td>
+      <td>${c.turns}</td>
+      <td><span class="tag ${c.status}">${c.status}</span></td>`;
+    tr.addEventListener("click", () => openConversation(c.id, tbody));
+    tbody.appendChild(tr);
+  }
+}
+async function openConversation(id, tbody) {
+  selectedId = id;
+  for (const tr of tbody.querySelectorAll("tr")) tr.setAttribute("aria-selected", "false");
+  const { data } = await api(`/api/conversations/${id}`);
+  const c = data?.conversation;
+  const detail = $("convDetail");
+  if (!c) { detail.innerHTML = `<div class="placeholder">Could not load this conversation.</div>`; return; }
+  const turns = (c.turns || []).map((t) => `
+    <div class="turn ${t.role}">
+      <div class="who">${t.role === "agent" ? "Covalent Kee" : "Caller"}</div>
+      <div class="bubble"></div>
+    </div>`).join("");
+  detail.innerHTML = `
+    <div class="meta">
+      <div><code>${c.id}</code></div>
+      <div>${c.agent} · voice ${c.voice || "—"} · <span class="tag ${c.status}">${c.status}</span></div>
+      <div>Started ${fmt(c.started_at)} · Ended ${fmt(c.ended_at)}</div>
+    </div>
+    <div class="turns">${turns || '<div class="placeholder">No turns recorded.</div>'}</div>`;
+  // set text safely (avoid HTML injection from transcripts)
+  const bubbles = detail.querySelectorAll(".turns .bubble");
+  (c.turns || []).forEach((t, i) => { if (bubbles[i]) bubbles[i].textContent = t.text; });
+}
+
+/* ====== Knowledge base ====== */
+async function loadDocs() {
+  const { data } = await api("/api/kb/docs");
+  const docs = data?.documents || [];
+  const list = $("docsList");
+  if (!docs.length) { list.innerHTML = `<div class="placeholder">No documents yet. Ingest something on the left.</div>`; return; }
+  list.innerHTML = "";
+  for (const d of docs) {
+    const row = document.createElement("div");
+    row.className = "doc";
+    row.innerHTML = `
+      <div>
+        <div class="t"></div>
+        <div class="s">${d.chunks} chunk${d.chunks === 1 ? "" : "s"} · ${d.char_count.toLocaleString()} chars · ${fmt(d.created_at)} · ${d.source || "paste"}</div>
+      </div>
+      <button class="del">Delete</button>`;
+    row.querySelector(".t").textContent = d.title;
+    row.querySelector(".del").addEventListener("click", async () => {
+      if (!confirm(`Delete "${d.title}"? This removes it from what the agent can answer.`)) return;
+      await api(`/api/kb/docs?id=${encodeURIComponent(d.id)}`, { method: "DELETE" });
+      toast("Document deleted");
+      loadDocs();
+    });
+    list.appendChild(row);
+  }
+}
+
+// Extract plain text from an uploaded document, in the browser.
+async function extractText(file) {
+  const name = (file.name || "").toLowerCase();
+  const ab = () => file.arrayBuffer();
+  if (name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown") ||
+      (file.type && file.type.startsWith("text/"))) {
+    return await file.text();
+  }
+  if (name.endsWith(".docx")) {
+    if (!window.mammoth) throw new Error("Word parser failed to load");
+    const res = await window.mammoth.extractRawText({ arrayBuffer: await ab() });
+    return res.value || "";
+  }
+  if (name.endsWith(".pdf")) {
+    if (!window.pdfjsLib) throw new Error("PDF parser failed to load");
+    const pdf = await window.pdfjsLib.getDocument({ data: await ab() }).promise;
+    let out = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      out += tc.items.map((s) => s.str).join(" ") + "\n\n";
+    }
+    return out;
+  }
+  if (name.endsWith(".doc")) throw new Error("Legacy .doc not supported — save as .docx or PDF");
+  throw new Error("Unsupported file type");
+}
+
+// Upload queue: { file, title, text, status: 'parsing'|'ready'|'err', note }
+let queue = [];
+const titleOf = (n) => n.replace(/\.[^.]+$/, "");
+
+function renderQueue() {
+  const el = $("queue");
+  el.innerHTML = "";
+  queue.forEach((q, i) => {
+    const row = document.createElement("div");
+    row.className = "qitem " + (q.status === "ready" ? "ready" : q.status === "err" ? "err" : "");
+    row.innerHTML = `<span class="nm"></span><span class="st"></span><button class="x" title="Remove">×</button>`;
+    row.querySelector(".nm").textContent = q.file.name;
+    row.querySelector(".st").textContent =
+      q.status === "parsing" ? "parsing…" :
+      q.status === "ready" ? `${q.text.length.toLocaleString()} chars` :
+      q.note || "failed";
+    row.querySelector(".x").addEventListener("click", () => { queue.splice(i, 1); renderQueue(); });
+    el.appendChild(row);
+  });
+  const ready = queue.filter((q) => q.status === "ready").length;
+  $("ingestBtn").disabled = ready === 0;
+  $("ingestHint").textContent = ready ? `${ready} file${ready === 1 ? "" : "s"} ready` : "";
+}
+
+async function addFiles(fileList) {
+  for (const file of fileList) {
+    const q = { file, title: titleOf(file.name), text: "", status: "parsing", note: "" };
+    queue.push(q);
+    renderQueue();
+    try {
+      const text = await extractText(file);
+      if (!text.trim()) { q.status = "err"; q.note = "no extractable text"; }
+      else { q.text = text; q.status = "ready"; }
+    } catch (err) {
+      q.status = "err"; q.note = err.message || "parse failed";
+    }
+    renderQueue();
+  }
+}
+
+const dz = $("dropzone");
+$("kbFiles").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+["dragenter", "dragover"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("drag"); }));
+["dragleave", "drop"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("drag"); }));
+dz.addEventListener("drop", (e) => { if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+
+$("ingestBtn").addEventListener("click", async () => {
+  const ready = queue.filter((q) => q.status === "ready");
+  if (!ready.length) return;
+  const btn = $("ingestBtn");
+  btn.disabled = true; btn.textContent = "Ingesting…";
+  let okCount = 0;
+  for (const q of ready) {
+    const { ok, data } = await api("/api/kb/ingest", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: q.title, text: q.text, source: q.file.name }),
+    });
+    if (ok && data?.document) okCount++;
+    else { q.status = "err"; q.note = data?.error || "ingest failed"; }
+  }
+  btn.disabled = false; btn.textContent = "Ingest";
+  queue = queue.filter((q) => q.status !== "ready"); // keep only failures
+  renderQueue();
+  if (okCount) toast(`Ingested ${okCount} document${okCount === 1 ? "" : "s"}`);
+  loadDocs();
+});
+$("refreshDocs").addEventListener("click", loadDocs);
+
+/* ====== Boot ====== */
+loadConversations();
+</script>
+</body>
+</html>

@@ -6,18 +6,22 @@
 <title>ICP Discovery Agent · Covalent × KeeMakr.ai</title>
 <style>
   :root {
-    --ink: #0d1b2a;
-    --ink-soft: #44566b;
-    --line: #e3e9f0;
-    --bg: #f6f9fc;
+    /* Covalent Medical palette — charcoal wordmark + blue orbit swoosh */
+    --ink: #2b3138;            /* charcoal (Covalent wordmark) */
+    --ink-soft: #5b6671;       /* MEDICAL gray */
+    --line: #e2e9f1;
+    --bg: #f4f8fd;
     --card: #ffffff;
-    --brand: #0f9b8e;      /* covalent teal */
-    --brand-deep: #0a6f66;
-    --accent: #2563eb;     /* keemakr blue  */
-    --accent-soft: #eef3ff;
-    --user: #2563eb;
-    --agent: #0f9b8e;
-    --shadow: 0 18px 50px -24px rgba(13,27,42,.35);
+    --brand: #1f8fe8;          /* covalent blue (mid swoosh) */
+    --brand-deep: #1450c0;     /* deep royal blue (arrowhead) */
+    --brand-light: #54c1f5;    /* sky blue (top of swoosh) */
+    --brand-tint: #e8f3fe;     /* pale blue surface */
+    --brand-tint-line: #c4e1fb;
+    --accent: #1450c0;         /* deep blue accent */
+    --accent-soft: #eaf2ff;
+    --user: #1450c0;
+    --agent: #1f8fe8;
+    --shadow: 0 18px 50px -24px rgba(20,40,70,.35);
     --radius: 18px;
     font-synthesis: none;
   }
@@ -28,8 +32,8 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
     color: var(--ink);
     background:
-      radial-gradient(1100px 600px at 85% -10%, #e7f7f4 0%, transparent 55%),
-      radial-gradient(900px 500px at 0% 0%, #eaf1ff 0%, transparent 50%),
+      radial-gradient(1100px 600px at 85% -10%, #def0fe 0%, transparent 55%),
+      radial-gradient(900px 500px at 0% 0%, #e9f1ff 0%, transparent 50%),
       var(--bg);
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
@@ -44,19 +48,21 @@
     background: rgba(255,255,255,.6);
     position: sticky; top: 0; z-index: 10;
   }
-  .brand { display: flex; align-items: center; gap: 14px; }
-  .logo {
-    width: 38px; height: 38px; border-radius: 11px;
-    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
-    display: grid; place-items: center; color: #fff; font-weight: 800;
-    box-shadow: var(--shadow);
+  .brand { display: flex; align-items: center; gap: 16px; }
+
+  /* ----- Covalent Medical logo ----- */
+  .logo { display: block; height: 52px; width: auto; user-select: none; }
+  @media (max-width: 620px) { .logo { height: 42px; } }
+  .brand .sub {
+    border-left: 1px solid var(--line); padding-left: 16px; align-self: center;
   }
-  .brand b { font-size: 15px; letter-spacing: -.01em; }
-  .brand small { display: block; color: var(--ink-soft); font-size: 12px; font-weight: 500; }
-  .cross { color: var(--ink-soft); font-weight: 400; padding: 0 2px; }
+  .brand .sub b { font-size: 14px; letter-spacing: -.01em; color: var(--ink); }
+  .brand .sub small { display: block; color: var(--ink-soft); font-size: 11.5px; font-weight: 500; }
+  @media (max-width: 620px) { .brand .sub { display: none; } }
+
   .pill {
     font-size: 12px; font-weight: 600; color: var(--brand-deep);
-    background: #e7f7f4; border: 1px solid #c7ebe5;
+    background: var(--brand-tint); border: 1px solid var(--brand-tint-line);
     padding: 6px 12px; border-radius: 999px;
   }
 
@@ -123,9 +129,9 @@
     --size: 132px;
     width: var(--size); height: var(--size); border-radius: 999px;
     position: relative; cursor: pointer; border: none; padding: 0;
-    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    background: linear-gradient(140deg, var(--brand-light), var(--brand) 48%, var(--brand-deep));
     color: #fff; display: grid; place-items: center;
-    box-shadow: 0 16px 40px -12px rgba(15,155,142,.55);
+    box-shadow: 0 16px 40px -12px rgba(31,143,232,.6);
     transition: transform .15s ease, box-shadow .2s;
   }
   .orb:hover { transform: translateY(-2px); }
@@ -158,11 +164,15 @@
   }
   .turn.agent { align-self: flex-start; }
   .turn.agent .who { color: var(--agent); }
-  .turn.agent .bubble { background: #ecf8f6; border: 1px solid #d3eee9; border-bottom-left-radius: 5px; }
+  .turn.agent .bubble { background: #eaf4fe; border: 1px solid #cfe6fb; border-bottom-left-radius: 5px; }
   .turn.user { align-self: flex-end; text-align: right; }
   .turn.user .who { color: var(--user); }
   .turn.user .bubble { background: var(--accent-soft); border: 1px solid #d8e3ff; border-bottom-right-radius: 5px; text-align: left; }
   .turn.partial .bubble { opacity: .6; font-style: italic; }
+  .turn.agent.live .bubble::after {
+    content: "▍"; color: var(--agent); margin-left: 1px; font-weight: 400;
+    animation: blink 1s steps(1) infinite;
+  }
 
   /* Controls */
   .controls {
@@ -180,7 +190,17 @@
     display: none;
   }
   .btn-end:hover { background: #cf473d; }
+  .btn-mute {
+    font: inherit; font-weight: 600; font-size: 14px; color: var(--brand-deep);
+    background: var(--brand-tint); border: 1px solid var(--brand-tint-line);
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    display: none; align-items: center; gap: 8px;
+  }
+  .btn-mute svg { width: 16px; height: 16px; }
+  .btn-mute:hover { background: #dcecfd; }
+  .btn-mute.muted { color: #fff; background: var(--ink); border-color: var(--ink); }
   .live .btn-end { display: inline-block; }
+  .live .btn-mute { display: inline-flex; }
   .live select { display: none; }
   .live label { display: none; }
 
@@ -198,7 +218,7 @@
   .switcher button:hover { color: var(--ink); }
   .switcher button[aria-selected="true"] {
     background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff;
-    box-shadow: 0 8px 18px -10px rgba(15,155,142,.6);
+    box-shadow: 0 8px 18px -10px rgba(31,143,232,.6);
   }
   .switcher.locked { opacity: .5; pointer-events: none; }
 
@@ -206,13 +226,18 @@
   footer code { background: #eef2f6; padding: 2px 6px; border-radius: 5px; font-size: 12px; }
   a { color: var(--accent); }
 </style>
+<script>
+  // PostHog stub — real init happens in the module once /api/config is fetched.
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+</script>
 </head>
 <body>
   <header>
     <div class="brand">
-      <div>
-        <b>KeeMakr.ai</b>
-        <small>Voice Agents</small>
+      <img class="logo" src="/covalent-medical-logo.svg" alt="Covalent Medical" width="210" height="72" />
+      <div class="sub">
+        <b>Voice Agents</b>
+        <small>powered by KeeMakr.ai</small>
       </div>
     </div>
     <span class="pill" id="pill">● ICP Discovery Agent</span>
@@ -264,15 +289,115 @@
           <option value="sophie">Sophie — UK</option>
           <option value="oliver">Oliver — UK</option>
         </select>
-        <button class="btn-end" id="endBtn">End call</button>
+        <button class="btn-mute" id="muteBtn" aria-pressed="false">
+          <svg id="muteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+          </svg>
+          <span id="muteLabel">Mute</span>
+        </button>
+        <button class="btn-end" id="endBtn">Stop call</button>
       </div>
     </section>
   </main>
 
-  <footer></footer>
+  <footer>Generated by Covalent&nbsp;Kee · Powered by KeeMakr.AI</footer>
 
 <script type="module">
 const RATE = 24_000;
+
+/* ====== Backend (Supabase persistence + KB) + PostHog ====================== */
+const postJSON = (path, body) =>
+  fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+    .then((r) => r.json());
+
+// Stable anonymous id for this browser (PostHog distinct_id + conversation client_id).
+let clientId = localStorage.getItem("cv_client_id");
+if (!clientId) {
+  clientId = "cv_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem("cv_client_id", clientId);
+}
+
+// Init PostHog once we fetch the public config from our server.
+let ph = null;
+(async () => {
+  try {
+    const cfg = await (await fetch("/api/config")).json();
+    if (cfg.posthogToken && window.posthog) {
+      window.posthog.init(cfg.posthogToken, {
+        api_host: cfg.posthogHost,
+        defaults: "2026-01-30",
+        person_profiles: "always",
+      });
+      window.posthog.identify(clientId);
+      ph = window.posthog;
+    }
+  } catch { /* monitoring is best-effort */ }
+})();
+function track(event, props) { try { ph && ph.capture(event, props); } catch {} }
+
+// Knowledge-base tool the agent calls mid-conversation; our server does the search.
+const SEARCH_TOOL = {
+  type: "function",
+  name: "search_knowledge_base",
+  description:
+    "Search Covalent's knowledge base for factual information about Covalent — products, pricing, ICP, hiring, or company facts. Call this whenever the caller asks a factual question you are not certain about. Never invent answers.",
+  parameters: {
+    type: "object",
+    properties: { query: { type: "string", description: "What to look up, in a few words" } },
+    required: ["query"],
+  },
+  execution_mode: "interactive",
+  timeout_seconds: 30,
+};
+const KB_INSTRUCTION = `
+
+# KNOWLEDGE BASE
+You have a tool, search_knowledge_base, connected to Covalent's curated knowledge base. When the caller asks a factual question about Covalent (products, pricing, ICP, hiring, company facts) and you are not certain, call search_knowledge_base with a short query and base your spoken answer only on what it returns. If it returns nothing relevant, say you don't have that detail — never make facts up.`;
+
+// Conversation persistence (fire-and-forget; a DB hiccup must never break a call).
+let convId = null;
+async function persistStart() {
+  convId = null;
+  try {
+    const r = await postJSON("/api/conversations", { agent: agentKey, voice: voiceSel.value, client_id: clientId });
+    if (r && r.id) convId = r.id;
+  } catch { /* persistence is best-effort */ }
+}
+function persistTurn(role, text) {
+  if (!convId || !text) return;
+  postJSON("/api/turns", { conversation_id: convId, role, text }).catch(() => {});
+}
+function persistEnd(status) {
+  if (!convId) return;
+  postJSON(`/api/conversations/${convId}`, { status }).catch(() => {});
+}
+
+// Tool results must be sent only after the agent's current reply is done (AAI rule).
+let replyInProgress = false;
+const pendingToolResults = [];
+function flushToolResults() {
+  if (!ws || ws.readyState !== 1) return;
+  while (pendingToolResults.length) ws.send(JSON.stringify(pendingToolResults.shift()));
+}
+async function handleToolCall(m) {
+  let args = m.arguments;
+  if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = {}; } }
+  let resultStr = JSON.stringify({ results: [] });
+  if (m.name === "search_knowledge_base") {
+    try {
+      const r = await postJSON("/api/kb/search", { query: args?.query || "", limit: 5 });
+      const chunks = (r?.results || []).map((x) => x.content);
+      resultStr = JSON.stringify({ results: chunks });
+      track("tool_call", { query: args?.query, hits: chunks.length });
+      if (chunks.length === 0) track("kb_no_results", { query: args?.query });
+    } catch {
+      resultStr = JSON.stringify({ results: [], error: "search_failed" });
+    }
+  }
+  pendingToolResults.push({ type: "tool.result", call_id: m.call_id, result: resultStr });
+  if (!replyInProgress) flushToolResults();
+}
 
 /* ====== Covalent Kee personas (sent in session.update) ===================== */
 const AGENTS = {
@@ -379,6 +504,9 @@ const transcriptEl = document.getElementById("transcript");
 const emptyEl = document.getElementById("empty");
 const voiceSel = document.getElementById("voice");
 const endBtn = document.getElementById("endBtn");
+const muteBtn = document.getElementById("muteBtn");
+const muteLabel = document.getElementById("muteLabel");
+const muteIcon = document.getElementById("muteIcon");
 const switcher = document.getElementById("switcher");
 const pill = document.getElementById("pill");
 const heroRole = document.getElementById("heroRole");
@@ -421,6 +549,50 @@ function addTurn(who, text, partial = false) {
   return el;
 }
 
+/* ====== Live agent caption ================================================ */
+/* AssemblyAI sends the agent's text (transcript.agent) only after the audio is
+   delivered — but audio is buffered ahead of playback, so the text lands while
+   Kee is still speaking. We reveal it word-by-word across the remaining audio
+   playback time so the caption "runs" in sync with her voice. */
+let agentLiveNode = null;
+let agentReveal = null; // { timer, full, node, bubble }
+
+function finishAgentReveal() {
+  if (!agentReveal) return;
+  clearInterval(agentReveal.timer);
+  agentReveal.bubble.textContent = agentReveal.full;   // snap to complete text
+  agentReveal.node.classList.remove("live");
+  agentReveal = null;
+}
+function startAgentBubble() {
+  finishAgentReveal();              // snap any prior reveal to its full text
+  agentLiveNode = addTurn("agent", "…");
+  agentLiveNode.classList.add("live");
+}
+function revealAgentText(full) {
+  finishAgentReveal();
+  if (!agentLiveNode) startAgentBubble();
+  const node = agentLiveNode;
+  const bubble = node.querySelector(".bubble");
+
+  const tokens = (full || "").split(/(\s+)/);     // keep whitespace tokens
+  const total = tokens.length;
+  // time left in the currently-playing (buffered) audio = speech still to be heard
+  const remaining = ctx ? Math.max(0.5, playT - ctx.currentTime) : 1.2;
+  const stepMs = 45;
+  const perStep = Math.max(1, total / Math.max(1, (remaining * 1000) / stepMs));
+  let shown = 0;
+  bubble.textContent = "";
+  const timer = setInterval(() => {
+    shown += perStep;
+    const n = Math.min(total, Math.ceil(shown));
+    bubble.textContent = tokens.slice(0, n).join("");
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    if (n >= total) { clearInterval(timer); node.classList.remove("live"); if (agentReveal && agentReveal.timer === timer) agentReveal = null; }
+  }, stepMs);
+  agentReveal = { timer, full, node, bubble };
+}
+
 /* ====== AudioWorklet: Float32 mic → PCM16 ================================== */
 const workletUrl = URL.createObjectURL(new Blob([`
   class P extends AudioWorkletProcessor {
@@ -439,7 +611,20 @@ const workletUrl = URL.createObjectURL(new Blob([`
 `], { type: "application/javascript" }));
 
 /* ====== Session state ====================================================== */
-let ctx, mic, source, worklet, ws, ready = false, playT = 0;
+let ctx, mic, source, worklet, ws, ready = false, playT = 0, muted = false;
+
+const MUTE_ICON = `<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>`;
+const UNMUTE_ICON = `<line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/>`;
+
+function setMuted(on) {
+  muted = on;
+  if (mic) mic.getAudioTracks().forEach(t => { t.enabled = !on; });
+  muteBtn.classList.toggle("muted", on);
+  muteBtn.setAttribute("aria-pressed", String(on));
+  muteLabel.textContent = on ? "Unmute" : "Mute";
+  muteIcon.innerHTML = on ? UNMUTE_ICON : MUTE_ICON;
+  if (active) orbLabel.textContent = on ? "Muted" : "Listening…";
+}
 
 async function startCall() {
   if (active) return;
@@ -486,7 +671,7 @@ async function startCall() {
   ws = new WebSocket(url);
 
   worklet.port.onmessage = ({ data }) => {
-    if (!ready || ws.readyState !== 1) return;
+    if (!ready || muted || ws.readyState !== 1) return;
     const b = new Uint8Array(data);
     let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
     ws.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
@@ -495,8 +680,9 @@ async function startCall() {
   ws.onopen = () => ws.send(JSON.stringify({
     type: "session.update",
     session: {
-      system_prompt: AGENTS[agentKey].systemPrompt,
+      system_prompt: AGENTS[agentKey].systemPrompt + KB_INSTRUCTION,
       greeting: AGENTS[agentKey].greeting,
+      tools: [SEARCH_TOOL],
       input: {
         format: { encoding: "audio/pcm" },
         turn_detection: { vad_threshold: 0.5, min_silence: 200, max_silence: 1000, interrupt_response: true },
@@ -511,6 +697,8 @@ async function startCall() {
       case "session.ready":
         ready = true;
         setStatus("live", "Connected — say hi to Kee");
+        persistStart();
+        track("call_started", { agent: agentKey, voice: voiceSel.value });
         break;
 
       case "input.speech.started":
@@ -526,13 +714,19 @@ async function startCall() {
 
       case "transcript.user":
         if (partialNode) { partialNode.remove(); partialNode = null; }
-        if (m.text) addTurn("user", m.text);
+        if (m.text) { addTurn("user", m.text); persistTurn("user", m.text); }
         break;
 
       case "reply.started":
+        replyInProgress = true;
         setStatus("speaking", "Kee is speaking…");
         orb.classList.add("speaking");
         orbLabel.textContent = "Speaking…";
+        startAgentBubble();               // show a live caption bubble immediately
+        break;
+
+      case "tool.call":
+        handleToolCall(m);
         break;
 
       case "reply.audio": {
@@ -552,18 +746,23 @@ async function startCall() {
       }
 
       case "transcript.agent":
-        if (m.text) addTurn("agent", m.text);
+        if (m.text) { revealAgentText(m.text); persistTurn("agent", m.text); }
+        else finishAgentReveal();
         break;
 
       case "reply.done":
+        replyInProgress = false;
         orb.classList.remove("speaking");
-        if (m.status === "interrupted") playT = ctx.currentTime; // flush stale audio
+        if (m.status === "interrupted") { playT = ctx.currentTime; finishAgentReveal(); } // flush stale audio + caption
         setStatus("live", "Your turn");
         orbLabel.textContent = "Listening…";
+        flushToolResults(); // safe point to deliver any pending tool results
+        agentLiveNode = null;
         break;
 
       case "session.error":
         console.error("agent error:", m.message);
+        track("voice_error", { message: m.message });
         fail(m.message || "Agent error");
         break;
     }
@@ -580,11 +779,14 @@ function fail(msg) {
   switcher.classList.remove("locked");
   orb.classList.remove("on", "speaking");
   document.getElementById("micIcon").style.display = "";
+  persistEnd("error");
   cleanup();
 }
 
 function endCall(remoteClosed = false) {
   active = false;
+  persistEnd("ended");
+  track("call_ended", { agent: agentKey, remote_closed: remoteClosed });
   cleanup();
   panel.classList.remove("live");
   switcher.classList.remove("locked");
@@ -600,10 +802,14 @@ function cleanup() {
   try { worklet && (worklet.port.onmessage = null); } catch {}
   try { ctx && ctx.close(); } catch {}
   ready = false; playT = 0; partialNode = null;
+  replyInProgress = false; pendingToolResults.length = 0; convId = null;
+  finishAgentReveal(); agentLiveNode = null;
+  if (muted) setMuted(false);
 }
 
 orb.addEventListener("click", () => { active ? endCall() : startCall(); });
 endBtn.addEventListener("click", () => endCall());
+muteBtn.addEventListener("click", () => { if (active) setMuted(!muted); });
 </script>
 </body>
 </html>
