@@ -595,6 +595,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 import { PERSONAS } from "/personas.js";
 
 const RATE = 24_000;
+console.log("%cCovalent Kee build: ring-buffer-playback", "color:#9a3412;font-weight:600");
 const DEPTS = ["supply", "icp", "ihp", "sales", "marcom", "hr"];
 const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents" };
 const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs";   // pseudo-sections: no versions, no feedback, no Kee
@@ -615,7 +616,9 @@ let userName = localStorage.getItem("cov_user_name") || "";
 
 const nameSlug = (n) => "kee:" + n.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 60);
 
-let ph = null;
+// Point ph at the stub immediately so track() calls before /api/config resolves
+// are queued by the snippet and replayed once init() fires, rather than silently dropped.
+let ph = window.posthog || null;
 function identify() {
   if (!ph) return;
   try {
@@ -634,6 +637,8 @@ function identify() {
       });
       ph = window.posthog;
       identify();
+    } else {
+      ph = null; // no token configured — disable tracking
     }
   } catch { /* monitoring is best-effort */ }
 })();
@@ -774,6 +779,7 @@ async function show(dept) {
   loader.style.display = "flex";
   current = dept;
   if (DEPTS.includes(dept)) lastRealDept = dept;
+  track("dept_viewed", { dept });
 
   // leaving a draft preview behind when navigating
   if (viewingDraft) exitDraftView();
@@ -1042,11 +1048,64 @@ const workletUrl = URL.createObjectURL(new Blob([`
   registerProcessor("pcm", P);
 `], { type: "application/javascript" }));
 
-let ctx, mic, source, worklet, ws, ready = false, playT = 0, muted = false, active = false;
+// Agent audio → continuous ring-buffer playback worklet. reply.audio chunks are
+// pushed into this queue; the audio thread drains it at the hardware rate, so
+// playback stays smooth even when the main thread is busy. This replaces
+// per-chunk AudioBufferSourceNode scheduling, which broke up (gaps/jerking) the
+// moment any main-thread work delayed the next chunk.
+const playbackUrl = URL.createObjectURL(new Blob([`
+  // Measured: AssemblyAI streams reply.audio at ~0.7-0.9x realtime, in bursts with
+  // gaps up to ~1s and worst-case deficits over 1s. So we pre-buffer a large cushion
+  // before starting each reply; anything smaller starves the queue and breaks up.
+  const RATE = 24000;
+  const TARGET = Math.round(RATE * 1.5);    // 1.5s jitter cushion
+  class Playback extends AudioWorkletProcessor {
+    constructor() {
+      super();
+      this.q = [];                  // queued Float32Array chunks
+      this.queued = 0;              // total samples currently queued
+      this.cur = null; this.pos = 0;
+      this.priming = true;          // build the cushion before starting a reply
+      this.ending = false;          // reply.done seen: play out remainder even if < TARGET
+      this.port.onmessage = (e) => {
+        const d = e.data;
+        if (d.type === "push") { this.q.push(d.samples); this.queued += d.samples.length; }
+        else if (d.type === "end") { this.ending = true; }                  // play out a short reply
+        else if (d.type === "flush") { this.q.length = 0; this.queued = 0; this.cur = null; this.pos = 0; this.priming = true; this.ending = false; } // barge-in
+      };
+    }
+    process(_inputs, outputs) {
+      const out = outputs[0][0];
+      if (!out) return true;
+      if (this.priming) {
+        if (this.queued >= TARGET || (this.ending && this.queued > 0)) this.priming = false;
+        else { out.fill(0); return true; }
+      }
+      for (let i = 0; i < out.length; i++) {
+        if (!this.cur || this.pos >= this.cur.length) { this.cur = this.q.shift() || null; this.pos = 0; }
+        if (this.cur) { out[i] = this.cur[this.pos++]; this.queued--; }
+        else {
+          out[i] = 0;
+          // Queue empty. Re-prime ONLY once the reply has fully ended (go idle until
+          // the next reply). A mid-reply gap is NOT re-primed — we resume the instant
+          // more audio arrives, so a shortfall costs only its own length. Re-priming
+          // mid-reply would compound silence, since delivery is sub-realtime.
+          if (this.ending) { this.priming = true; this.ending = false; }
+        }
+      }
+      return true;
+    }
+  }
+  registerProcessor("kee-playback", Playback);
+`], { type: "application/javascript" }));
+
+let ctx, mic, source, worklet, playback, ws, ready = false, playT = 0, muted = false, active = false;
 let convId = null, callDept = null, guideMode = false;
 let replyInProgress = false;
 const pendingToolResults = [];
 let agentBubble = null, partialBubble = null;
+let agentReveal = null; // { timer, full, node, bubble } — live caption in progress
+let audioChunks = 0, audioUnderruns = 0; // per-reply playback diagnostics
 
 function setKeeStatus(cls, text) {
   $("keeStatus").className = "kee-status" + (cls ? " " + cls : "");
@@ -1061,6 +1120,40 @@ function addKtTurn(who, text) {
   $("keeTranscript").appendChild(el);
   $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
   return el;
+}
+
+// Live agent caption. AssemblyAI sends the agent's text (transcript.agent) in one
+// piece, only after the audio is delivered — but audio is buffered ahead of
+// playback, so the text lands while Kee is still speaking. Reveal it word-by-word
+// across the remaining buffered audio time so the caption runs in sync with her voice.
+function finishAgentReveal() {
+  if (!agentReveal) return;
+  clearInterval(agentReveal.timer);
+  agentReveal.bubble.textContent = agentReveal.full;   // snap to complete text
+  agentReveal.node.classList.remove("live");
+  agentReveal = null;
+}
+function revealAgentText(full) {
+  finishAgentReveal();                                  // snap any prior reveal
+  const node = agentBubble || (agentBubble = addKtTurn("agent", "…"));
+  const bubble = node.querySelector(".bub");
+  node.classList.add("live");
+
+  const tokens = (full || "").split(/(\s+)/);           // keep whitespace tokens
+  const total = tokens.length;
+  const remaining = ctx ? Math.max(0.5, playT - ctx.currentTime) : 1.2;
+  const stepMs = 45;
+  const perStep = Math.max(1, total / Math.max(1, (remaining * 1000) / stepMs));
+  let shown = 0;
+  bubble.textContent = "";
+  const timer = setInterval(() => {
+    shown += perStep;
+    const n = Math.min(total, Math.ceil(shown));
+    bubble.textContent = tokens.slice(0, n).join("");
+    $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
+    if (n >= total) { clearInterval(timer); node.classList.remove("live"); if (agentReveal && agentReveal.timer === timer) agentReveal = null; }
+  }, stepMs);
+  agentReveal = { timer, full, node, bubble };
 }
 
 // Collect the visible text of the active section (descending into nested
@@ -1101,7 +1194,7 @@ function persistTurn(role, text) {
 }
 function persistEnd(status) {
   if (!convId) return;
-  postJSON(`/api/conversations/${convId}`, { status }).catch(() => {});
+  postJSON(`/api/conversations/${convId}`, { status, client_id: clientId, dept: callDept }).catch(() => {});
 }
 
 function flushToolResults() {
@@ -1132,6 +1225,10 @@ async function startCall() {
   if (!persona) return;
   active = true;
   callDept = guideMode ? "guide" : current;
+  // Pause PostHog session replay (rrweb) for the duration of the call. Its
+  // continuous DOM serialization produces main-thread long tasks that starve the
+  // audio graph and make Kee's voice choppy. Resumed in cleanupCall().
+  try { ph && ph.stopSessionRecording && ph.stopSessionRecording(); } catch {}
   $("keeStart").disabled = true; $("keeMute").disabled = false; $("keeEnd").disabled = false;
   setKeeStatus("", "Connecting…");
 
@@ -1148,6 +1245,7 @@ async function startCall() {
   ctx = new AudioContext({ sampleRate: RATE });
   await ctx.resume();
   await ctx.audioWorklet.addModule(workletUrl);
+  await ctx.audioWorklet.addModule(playbackUrl);
   try {
     mic = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -1160,17 +1258,15 @@ async function startCall() {
   worklet = new AudioWorkletNode(ctx, "pcm");
   source.connect(worklet).connect(ctx.destination);
 
-  const url = new URL("wss://agents.assemblyai.com/v1/ws");
-  url.searchParams.set("token", token);
-  ws = new WebSocket(url);
+  // Continuous playback sink for the agent's voice (see playbackUrl above).
+  playback = new AudioWorkletNode(ctx, "kee-playback", { outputChannelCount: [1] });
+  playback.connect(ctx.destination);
 
-  worklet.port.onmessage = ({ data }) => {
-    if (!ready || muted || ws.readyState !== 1) return;
-    const b = new Uint8Array(data);
-    let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
-    ws.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
-  };
-
+  // Build the system prompt — including the awaited memory fetch — BEFORE opening
+  // the WebSocket. If ws.onopen is assigned after an await, the socket's "open"
+  // event can fire first; session.update is then never sent and the call hangs
+  // on "Connecting…". Everything from socket creation to handler assignment below
+  // must stay synchronous (no await between them).
   const docText = guideMode ? "" : pageContext(callDept);
   const docVersion = selectedVersion[callDept];
   const callerNote = userName ? `\n\n# CALLER\nThe person you are speaking with is named ${userName}. You may greet them by name, but still confirm their role in question one.` : "";
@@ -1185,6 +1281,17 @@ async function startCall() {
   const systemPrompt = persona.systemPrompt + KB_INSTRUCTION + callerNote +
     (memoryText ? `\n\n# WORKBOOK MEMORY — everything that has happened so far across all functions (calls, feedback, documents, versions). Use it: don't re-ask what this person already answered, reference and build on what others have said, and probe open questions and contradictions.\n${memoryText}` : "") +
     (docText ? `\n\n# THE DOCUMENT ON SCREEN (v${docVersion}) — the caller is currently viewing this page; you have read it and can reference or answer questions about it\n${docText}` : "");
+
+  const url = new URL("wss://agents.assemblyai.com/v1/ws");
+  url.searchParams.set("token", token);
+  ws = new WebSocket(url);
+
+  worklet.port.onmessage = ({ data }) => {
+    if (!ready || muted || ws.readyState !== 1) return;
+    const b = new Uint8Array(data);
+    let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    ws.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
+  };
 
   ws.onopen = () => ws.send(JSON.stringify({
     type: "session.update",
@@ -1223,6 +1330,7 @@ async function startCall() {
         break;
       case "reply.started":
         replyInProgress = true;
+        audioChunks = 0; audioUnderruns = 0;
         setKeeStatus("speaking", "Kee is speaking…");
         agentBubble = addKtTurn("agent", "…");
         break;
@@ -1236,25 +1344,28 @@ async function startCall() {
           pcm[i] = raw.charCodeAt(i * 2) | (raw.charCodeAt(i * 2 + 1) << 8);
         const f32 = new Float32Array(pcm.length);
         for (let i = 0; i < pcm.length; i++) f32[i] = pcm[i] / 32768;
-        const buf = ctx.createBuffer(1, f32.length, RATE);
-        buf.getChannelData(0).set(f32);
-        const src = ctx.createBufferSource();
-        src.buffer = buf; src.connect(ctx.destination);
-        playT = Math.max(playT, ctx.currentTime);
-        src.start(playT); playT += buf.duration;
+        // Hand the PCM to the ring-buffer worklet. The audio thread drains it at
+        // 24kHz continuously, so a busy main thread can't break up playback.
+        playback.port.postMessage({ type: "push", samples: f32 }, [f32.buffer]);
+        // Track the tail of queued audio (playT) for caption pacing + diagnostics.
+        // playT < currentTime means the queue fully drained = a real underrun.
+        if (playT < ctx.currentTime) { playT = ctx.currentTime; audioUnderruns++; }
+        playT += pcm.length / RATE;
+        audioChunks++;
         break;
       }
       case "transcript.agent":
         if (m.text) {
-          if (agentBubble) agentBubble.querySelector(".bub").textContent = m.text;
-          else addKtTurn("agent", m.text);
+          revealAgentText(m.text);          // stream word-by-word in sync with audio
           persistTurn("agent", m.text);
-          $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
         }
         break;
       case "reply.done":
         replyInProgress = false;
-        if (m.status === "interrupted") playT = ctx.currentTime;
+        if (m.status === "interrupted") { playT = ctx.currentTime; try { playback && playback.port.postMessage({ type: "flush" }); } catch {} }
+        else { try { playback && playback.port.postMessage({ type: "end" }); } catch {} } // play out the tail even if < cushion
+        finishAgentReveal();                // snap caption to complete text
+        console.log(`[kee audio] reply chunks=${audioChunks} underruns=${audioUnderruns}${audioUnderruns ? " ← gaps = choppy audio" : ""}`);
         setKeeStatus("live", "Your turn");
         flushToolResults();
         agentBubble = null;
@@ -1281,7 +1392,7 @@ function endCall(remoteClosed = false) {
   if (!active) return;
   active = false;
   persistEnd("ended");
-  track("call_ended", { agent: callDept, remote_closed: remoteClosed });
+  track("call_ended", { agent: callDept, remote_closed: remoteClosed, conv_id: convId });
   cleanupCall();
   setKeeStatus("", "Call ended — start another any time");
 }
@@ -1289,7 +1400,11 @@ function cleanupCall() {
   try { ws && ws.readyState === 1 && ws.close(); } catch {}
   try { mic && mic.getTracks().forEach((t) => t.stop()); } catch {}
   try { worklet && (worklet.port.onmessage = null); } catch {}
+  try { playback && (playback.port.postMessage({ type: "flush" }), playback.disconnect()); } catch {}
   try { ctx && ctx.close(); } catch {}
+  playback = null;
+  if (agentReveal) { clearInterval(agentReveal.timer); agentReveal = null; }
+  try { ph && ph.startSessionRecording && ph.startSessionRecording(); } catch {} // resume replay after the call
   ready = false; playT = 0; partialBubble = null; agentBubble = null;
   replyInProgress = false; pendingToolResults.length = 0; convId = null;
   if (muted) setMuted(false);
@@ -1547,7 +1662,7 @@ async function agentPropose() {
     await loadDraft();               // canonical draft (cumulative log + instructions)
     if (agentDraft) agentDraft.html = j.html;
     previewDraft();
-    track("draft_proposed", { applied: j.applied });
+    // draft_proposed is captured server-side (avoids double-counting)
   } catch {
     setAgentStatus("err", "Network error — the draft may still be generating. Reopen Agent Mode in a minute.");
   } finally {
@@ -1570,7 +1685,7 @@ async function agentApprove() {
     const j = await r.json();
     if (!r.ok) { setAgentStatus("err", j.error || `Failed (${r.status}).`); return; }
     setAgentStatus("ok", `Published as v${j.version} ✓`);
-    track("draft_approved", { new_version: j.version });
+    // draft_approved is captured server-side (avoids double-counting)
     agentDraft = null; renderDraftInfo(null);
     exitDraftView();
     delete versionLists[current];
@@ -1593,11 +1708,11 @@ async function agentDiscard() {
   try {
     const r = await fetch("/api/draft/discard", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ dept: current, access_code: code }),
+      body: JSON.stringify({ dept: current, access_code: code, created_by: userName || null }),
     });
     if (!r.ok) { const j = await r.json().catch(() => ({})); setAgentStatus("err", j.error || "Failed."); return; }
     setAgentStatus("ok", "Draft discarded.");
-    track("draft_discarded", {});
+    // draft_discarded is captured server-side (avoids double-counting)
     agentDraft = null; renderDraftInfo(null);
     exitDraftView();
   } catch { setAgentStatus("err", "Network error."); }
@@ -1729,7 +1844,7 @@ async function submitDoc() {
     });
     const upJson = await up.json();
     if (!up.ok) throw new Error(upJson.error || `Upload failed (${up.status})`);
-    track("doc_shared", { doc_dept: dept, shared_by: sharer, mime: docFile.type });
+    // doc_shared is captured server-side (avoids double-counting)
     if (addContributor(dept, sharer) && dept === current) renderContributors(dept);
 
     if (fold) {

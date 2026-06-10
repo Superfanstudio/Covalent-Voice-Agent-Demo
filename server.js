@@ -10,6 +10,7 @@ import { dirname, join } from "node:path";
 
 import "./lib/env.js"; // loads .env into process.env
 import { route } from "./lib/router.js";
+import { shutdown as phShutdown } from "./lib/posthog.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
@@ -45,7 +46,9 @@ async function readBody(req) {
 
 async function serveFile(res, name, type) {
   const data = await readFile(join(__dirname, name), "utf8");
-  res.writeHead(200, { "content-type": type });
+  // no-store so the browser always runs the latest HTML/JS in dev — otherwise a
+  // cached index.html silently keeps serving old code after edits.
+  res.writeHead(200, { "content-type": type, "cache-control": "no-store" });
   res.end(data);
 }
 
@@ -100,3 +103,11 @@ server.listen(PORT, () => {
   console.log(`  Voice demo (v1)           → http://localhost:${PORT}/demo`);
   console.log(`  Admin panel               → http://localhost:${PORT}/admin\n`);
 });
+
+// Flush PostHog before the process exits so no events are lost on redeploy.
+async function gracefulShutdown() {
+  await phShutdown().catch(() => {});
+  process.exit(0);
+}
+process.once("SIGTERM", gracefulShutdown);
+process.once("SIGINT", gracefulShutdown);
