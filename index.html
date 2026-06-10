@@ -66,6 +66,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);
 .kee-cta .kc-t{display:flex;flex-direction:column;gap:1px;min-width:0;}
 .kee-cta .kc-l{font-size:13.5px;font-weight:600;line-height:1.2;}
 .kee-cta .kc-d{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.howto-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;cursor:pointer;
+  font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--ink2);
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:12px;
+  transition:background .14s,color .14s;}
+.howto-btn:hover{background:var(--tealbg);color:#0a4f3e;border-color:rgba(15,110,86,.25);}
+.howto-btn svg{width:15px;height:15px;flex:0 0 auto;}
 .side-footer .pk{font-family:var(--serif);font-size:13px;color:var(--ink2);}
 .side-footer .pk b{color:var(--rust);font-weight:600;}
 .side-footer .rev{font-size:10.5px;color:var(--ink3);margin-top:4px;letter-spacing:.03em;}
@@ -405,6 +411,10 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 </div>
     </nav>
     <div class="side-footer">
+      <button class="howto-btn" id="howtoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        How to use — ask Kee
+      </button>
       <div class="pk">Powered by <b>KeeMakr</b></div>
       <div class="rev">Rev. 2026-06-09b</div>
     </div>
@@ -1020,7 +1030,7 @@ const workletUrl = URL.createObjectURL(new Blob([`
 `], { type: "application/javascript" }));
 
 let ctx, mic, source, worklet, ws, ready = false, playT = 0, muted = false, active = false;
-let convId = null, callDept = null;
+let convId = null, callDept = null, guideMode = false;
 let replyInProgress = false;
 const pendingToolResults = [];
 let agentBubble = null, partialBubble = null;
@@ -1104,11 +1114,11 @@ async function handleToolCall(m) {
 }
 
 async function startCall() {
-  if (active || NO_DOC(current)) return;
-  const persona = PERSONAS[current];
+  if (active || (!guideMode && NO_DOC(current))) return;
+  const persona = guideMode ? PERSONAS.guide : PERSONAS[current];
   if (!persona) return;
   active = true;
-  callDept = current;
+  callDept = guideMode ? "guide" : current;
   $("keeStart").disabled = true; $("keeMute").disabled = false; $("keeEnd").disabled = false;
   setKeeStatus("", "Connecting…");
 
@@ -1148,7 +1158,7 @@ async function startCall() {
     ws.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
   };
 
-  const docText = pageContext(callDept);
+  const docText = guideMode ? "" : pageContext(callDept);
   const docVersion = selectedVersion[callDept];
   const callerNote = userName ? `\n\n# CALLER\nThe person you are speaking with is named ${userName}. You may greet them by name, but still confirm their role in question one.` : "";
 
@@ -1281,6 +1291,7 @@ function setMuted(on) {
 
 function openKee() {
   if (NO_DOC(current)) return;
+  guideMode = false;
   closeDrawer();
   document.body.classList.add("kee-open");
   $("keeDrawer").setAttribute("aria-hidden", "false");
@@ -1288,12 +1299,25 @@ function openKee() {
   $("keeSub").innerHTML = `A five-minute voice discovery call on <b>${esc(META[current])}</b> (v${selectedVersion[current] || 1})`;
   track("kee_opened", {});
 }
+function openGuide() {
+  if (active) return;            // a discovery call is live — don't hijack it
+  guideMode = true;
+  closeDrawer(); closeAgent();
+  document.body.classList.add("kee-open");
+  $("keeDrawer").setAttribute("aria-hidden", "false");
+  $("keeTitle").textContent = "Covalent Kee";
+  $("keeSub").innerHTML = `<b>How to use this workbook</b> — a quick voice tour, or ask anything`;
+  track("guide_opened", {});
+  closeNav();
+}
 function closeKee() {
   document.body.classList.remove("kee-open");
   $("keeDrawer").setAttribute("aria-hidden", "true");
+  if (!active) guideMode = false;
 }
 
 $("keeCta").addEventListener("click", openKee);
+$("howtoBtn").addEventListener("click", openGuide);
 $("keeClose").addEventListener("click", () => { if (active) endCall(); closeKee(); });
 $("keeStart").addEventListener("click", startCall);
 $("keeEnd").addEventListener("click", () => endCall());
