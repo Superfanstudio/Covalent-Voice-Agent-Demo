@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Document parsers for uploads: Word (.docx) via mammoth, PDF via pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+<script>window.addEventListener("DOMContentLoaded",()=>{ if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; });</script>
 <style>
 :root{
   --bg:#f4f1e9; --panel:#ffffff; --panel2:#faf8f1;
@@ -291,6 +295,54 @@ body.kee-open .kee-drawer{transform:translateX(0);}
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .act-when{flex:0 0 auto;font-size:11.5px;color:var(--ink3);white-space:nowrap;margin-top:3px;}
 .act-empty{color:var(--ink3);font-size:13.5px;text-align:center;padding:50px 16px;line-height:1.6;}
+.act-item.document .act-badge{background:#eeedfe;color:#534ab7;}
+
+/* ---------- Documents panel ---------- */
+.doc-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:24px;}
+.doc-card .dc-t{font-family:var(--serif);font-size:16.5px;font-weight:600;margin-bottom:10px;}
+.doc-file{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1.5px dashed var(--line2);
+  border-radius:11px;padding:13px 15px;cursor:pointer;font-size:13.5px;color:var(--ink2);margin-bottom:12px;transition:border-color .14s;}
+.doc-file:hover{border-color:var(--ink3);}
+.doc-file b{color:var(--ink);}
+.doc-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:11px;}
+.doc-row .dr-l{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--ink3);min-width:78px;}
+.doc-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.doc-chips button{font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--ink);cursor:pointer;
+  background:var(--panel2);border:1.5px solid var(--line2);border-radius:100px;padding:6px 12px;transition:border-color .12s,background .12s;}
+.doc-chips button em{font-style:normal;font-size:10px;color:var(--ink3);margin-left:3px;}
+.doc-chips button.sel{background:var(--tealbg);border-color:#0f6e56;color:#0a4f3e;}
+.doc-sel{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line2);border-radius:8px;padding:7px 9px;}
+.doc-other{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line2);border-radius:8px;padding:7px 11px;width:170px;}
+.doc-fold{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);cursor:pointer;user-select:none;}
+.doc-fold input[type=checkbox]{accent-color:var(--rust);width:15px;height:15px;}
+.doc-code{font-family:var(--sans);font-size:13px;background:var(--panel2);border:1px solid var(--line2);
+  border-radius:8px;padding:7px 11px;width:150px;display:none;}
+.doc-code.on{display:inline-block;}
+.doc-go{font-family:var(--sans);font-size:13.5px;font-weight:500;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:9px;padding:9px 18px;}
+.doc-go:disabled{opacity:.5;cursor:default;}
+.doc-status{font-size:12.5px;color:var(--ink3);margin-left:10px;}
+.doc-status.err{color:var(--rust);}
+.doc-status.ok{color:#2f6a4a;}
+.doc-group{margin-top:22px;}
+.doc-group .dg-t{font-family:var(--serif);font-size:15.5px;font-weight:600;color:var(--ink);margin-bottom:4px;
+  padding-bottom:5px;border-bottom:1px solid var(--line);}
+.doc-item{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(40,34,28,.06);}
+.doc-item:last-child{border-bottom:0;}
+.doc-ico{flex:0 0 auto;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:var(--panel2);border:1px solid var(--line);font-size:13px;}
+.doc-item .di-b{min-width:0;flex:1;}
+.doc-item .di-t{font-size:13.5px;font-weight:600;line-height:1.3;}
+.doc-item .di-m{font-size:11.5px;color:var(--ink3);margin-top:2px;}
+.doc-item .di-m b{color:var(--ink2);font-weight:500;}
+.di-fold{font-size:10.5px;font-weight:600;border-radius:7px;padding:2px 7px;white-space:nowrap;}
+.di-fold.in{background:#e7f3ec;color:#2f6a4a;}
+.di-fold.pending{background:#fdf4dd;color:#8a6d1d;}
+.di-dl{flex:0 0 auto;font-size:12px;font-weight:500;color:var(--rust);text-decoration:none;border:1px solid rgba(163,67,45,.3);
+  border-radius:8px;padding:5px 11px;white-space:nowrap;}
+.di-dl:hover{background:var(--rustbg);}
 
 /* ---------- Mobile ---------- */
 @media(max-width:880px){
@@ -333,6 +385,7 @@ body.kee-open .kee-drawer{transform:translateX(0);}
 <a class="nav-item" data-dept="hr" href="#hr"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">HR</span><span class="nav-desc">AI-native HR operating model</span></span><span class="nav-count" data-dept="hr">0</span></a>
 </div>
 <div class="nav-group"><div class="nav-group-label">Workbook</div>
+<a class="nav-item" data-dept="docs" href="#docs"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Documents</span><span class="nav-desc">Shared source material by function</span></span></a>
 <a class="nav-item" data-dept="activity" href="#activity"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Activity Log</span><span class="nav-desc">Who's shaping the live workbook</span></span></a>
 </div>
 <div class="nav-group"><div class="nav-group-label">Archive</div>
@@ -367,6 +420,7 @@ body.kee-open .kee-drawer{transform:translateX(0);}
     <div class="frames" id="frames">
       <div class="loader" id="loader"><div class="spinner"></div><div>Loading…</div></div>
       <div class="activity" id="activityPanel"></div>
+      <div class="activity" id="docsPanel"></div>
       <button class="kee-fab" id="keeCta" type="button" aria-label="Talk to Covalent Kee">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
         <span>Covalent Kee</span>
@@ -475,8 +529,9 @@ import { PERSONAS } from "/personas.js";
 
 const RATE = 24_000;
 const DEPTS = ["supply", "icp", "ihp", "sales", "marcom", "hr"];
-const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log" };
-const NO_DOC = (d) => d === "demo" || d === "activity";   // pseudo-sections: no versions, no feedback, no Kee
+const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents" };
+const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs";   // pseudo-sections: no versions, no feedback, no Kee
+const PRESET_NAMES = [["Dr. M", "Covalent"], ["Manny", "Covalent"], ["Keith", "Covalent"], ["Sne", "KeeMakr"], ["Raj", "KeeMakr"]];
 
 const $ = (id) => document.getElementById(id);
 const postJSON = (path, body) =>
@@ -559,6 +614,7 @@ const selectedVersion = {};   // dept -> number currently shown
 const htmlCache = {};         // "dept@version" -> html
 let fallbackDepts = null;     // decoded depts.json (offline/unconfigured fallback)
 let current = null;
+let lastRealDept = "icp";     // last real function viewed (defaults for uploads)
 
 const framesEl = $("frames"), loader = $("loader");
 
@@ -650,6 +706,7 @@ async function show(dept) {
   if (!META[dept]) dept = "icp";
   loader.style.display = "flex";
   current = dept;
+  if (DEPTS.includes(dept)) lastRealDept = dept;
 
   document.querySelectorAll(".nav-item").forEach((a) => a.classList.toggle("active", a.getAttribute("data-dept") === dept));
   $("topbarTitle").textContent = META[dept] || "Covalent";
@@ -657,16 +714,17 @@ async function show(dept) {
   $("fbFab").classList.toggle("hidden", NO_DOC(dept));
   renderVersionBar(dept);
 
-  if (dept === "activity") {
+  const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()] };
+  if (PANELS[dept]) {
     showOnly("__none__");
-    $("activityPanel").classList.add("show");
+    Object.entries(PANELS).forEach(([k, [id]]) => $(id).classList.toggle("show", k === dept));
     loader.style.display = "none";
-    renderActivity();
+    PANELS[dept][1]();
     try { if (location.hash.slice(1) !== dept) history.replaceState(null, "", "#" + dept); } catch {}
     closeNav();
     return;
   }
-  $("activityPanel").classList.remove("show");
+  Object.values(PANELS).forEach(([id]) => $(id).classList.remove("show"));
 
   if (dept !== "demo") { await getVersionList(dept); renderVersionBar(dept); }
   const version = dept === "demo" ? 1 : selectedVersion[dept];
@@ -1042,7 +1100,16 @@ async function startCall() {
   const docText = pageContext(callDept);
   const docVersion = selectedVersion[callDept];
   const callerNote = userName ? `\n\n# CALLER\nThe person you are speaking with is named ${userName}. You may greet them by name, but still confirm their role in question one.` : "";
+
+  // Kee's long-term memory: everything that has happened across the workbook.
+  let memoryText = "";
+  try {
+    const mr = await fetch("/api/memory");
+    if (mr.ok) memoryText = ((await mr.json()).content || "").slice(0, 18000);
+  } catch { /* memory is additive — calls work without it */ }
+
   const systemPrompt = persona.systemPrompt + KB_INSTRUCTION + callerNote +
+    (memoryText ? `\n\n# WORKBOOK MEMORY — everything that has happened so far across all functions (calls, feedback, documents, versions). Use it: don't re-ask what this person already answered, reference and build on what others have said, and probe open questions and contradictions.\n${memoryText}` : "") +
     (docText ? `\n\n# THE DOCUMENT ON SCREEN (v${docVersion}) — the caller is currently viewing this page; you have read it and can reference or answer questions about it\n${docText}` : "");
 
   ws.onopen = () => ws.send(JSON.stringify({
@@ -1186,8 +1253,9 @@ const ACT_ICONS = {
   feedback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   call: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>',
   version: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.2L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.6-.8z"/></svg>',
+  document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
 };
-const ACT_VERBS = { feedback: "left feedback on", call: "talked to Kee about", version: "published a new version of" };
+const ACT_VERBS = { feedback: "left feedback on", call: "talked to Kee about", version: "published a new version of", document: "shared a document on" };
 
 function actDay(iso) {
   const d = new Date(iso), now = new Date();
@@ -1231,6 +1299,7 @@ async function renderActivity() {
     const bits = [];
     if (p.feedback) bits.push(`${p.feedback} comment${p.feedback === 1 ? "" : "s"}`);
     if (p.calls) bits.push(`${p.calls} call${p.calls === 1 ? "" : "s"}`);
+    if (p.docs) bits.push(`${p.docs} doc${p.docs === 1 ? "" : "s"}`);
     if (p.versions) bits.push(`${p.versions} version${p.versions === 1 ? "" : "s"}`);
     return `<div class="act-person"><div class="act-avatar">${esc(initials(p.name))}</div><div><div class="ap-n">${esc(p.name)}</div><div class="ap-s">${esc(bits.join(" · "))}</div></div></div>`;
   }).join("");
@@ -1254,6 +1323,196 @@ async function renderActivity() {
     ${people ? `<div class="act-people">${people}</div>` : ""}
     <div class="act-feed">${feed || `<div class="act-empty">No activity yet.<br>Leave the first comment or take a call with Kee — it'll show up here.</div>`}</div>
   </div>`;
+}
+
+/* ====== Documents (shared source material) ================================= */
+const MAX_UPLOAD = 4 * 1024 * 1024;
+let docFile = null, docText = "", docSharer = "", docsBuilt = false;
+
+async function extractDocText(file) {
+  const name = (file.name || "").toLowerCase();
+  if (/^image\//.test(file.type || "")) return "";   // images go to the model as vision
+  if (name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown") || (file.type || "").startsWith("text/")) {
+    return await file.text();
+  }
+  if (name.endsWith(".docx")) {
+    if (!window.mammoth) throw new Error("Word parser still loading — try again in a second");
+    const res = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return res.value || "";
+  }
+  if (name.endsWith(".pdf")) {
+    if (!window.pdfjsLib) throw new Error("PDF parser still loading — try again in a second");
+    const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    let out = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const tc = await (await pdf.getPage(i)).getTextContent();
+      out += tc.items.map((s) => s.str).join(" ") + "\n\n";
+    }
+    return out;
+  }
+  if (name.endsWith(".doc")) throw new Error("Legacy .doc not supported — save as .docx or PDF");
+  throw new Error("Unsupported file type — use PDF, Word (.docx), text, markdown, or an image");
+}
+
+function docStatus(cls, msg) { const s = $("docStatus"); s.className = "doc-status " + (cls || ""); s.textContent = msg || ""; }
+
+function buildDocsPanel() {
+  if (docsBuilt) return;
+  docsBuilt = true;
+  const deptOpts = DEPTS.map((d) => `<option value="${d}">${META[d]}</option>`).join("");
+  const chips = PRESET_NAMES.map(([n, org]) => `<button type="button" data-name="${n}">${n} <em>${org}</em></button>`).join("") +
+    `<button type="button" data-name="__other">Other…</button>`;
+  $("docsPanel").innerHTML = `<div class="act-wrap">
+    <h1 class="act-h">Documents</h1>
+    <p class="act-sub">Source material shared by the team — every file is stored raw, made searchable for Kee, and folded into the next version of its function. Word, PDF, text, markdown, and images up to four megabytes.</p>
+    <div class="doc-card">
+      <div class="dc-t">Share a document</div>
+      <label class="doc-file" id="docDrop"><input type="file" id="docInput" hidden
+        accept=".pdf,.docx,.txt,.md,.markdown,image/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown">
+        <span id="docFileLbl"><b>Choose a file</b> — PDF · Word (.docx) · text · image</span>
+      </label>
+      <div class="doc-row"><span class="dr-l">Function</span><select class="doc-sel" id="docDept">${deptOpts}</select></div>
+      <div class="doc-row"><span class="dr-l">Shared by</span><div class="doc-chips" id="docChips">${chips}</div><input class="doc-other" id="docOther" placeholder="Name" style="display:none"></div>
+      <div class="doc-row"><span class="dr-l"></span>
+        <label class="doc-fold"><input type="checkbox" id="docFold"> Fold into a new version now</label>
+        <input type="password" class="doc-code" id="docCode" placeholder="Access code" autocomplete="off">
+      </div>
+      <div class="doc-row"><span class="dr-l"></span><button class="doc-go" id="docGo" type="button">Upload</button><span class="doc-status" id="docStatus"></span></div>
+    </div>
+    <div id="docList"><div class="act-empty">Loading documents…</div></div>
+  </div>`;
+
+  $("docDrop").addEventListener("click", () => $("docInput").click());
+  $("docInput").addEventListener("change", async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    if (f.size > MAX_UPLOAD) { docStatus("err", "Too large — 4MB max."); return; }
+    docFile = f; docText = "";
+    $("docFileLbl").innerHTML = `<b>${esc(f.name)}</b> — ${(f.size / 1024).toFixed(0)} KB`;
+    docStatus("", /^image\//.test(f.type || "") ? "Image ready — Kee reads it visually at version time." : "Parsing…");
+    try {
+      docText = await extractDocText(f);
+      if (!/^image\//.test(f.type || "")) docStatus("ok", `Parsed — ${docText.length.toLocaleString()} characters of text.`);
+    } catch (err) {
+      docFile = null;
+      docStatus("err", err.message || "Could not parse this file.");
+    }
+  });
+  $("docChips").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-name]");
+    if (!btn) return;
+    document.querySelectorAll("#docChips button").forEach((b) => b.classList.toggle("sel", b === btn));
+    if (btn.dataset.name === "__other") { docSharer = ""; $("docOther").style.display = ""; $("docOther").focus(); }
+    else { docSharer = btn.dataset.name; $("docOther").style.display = "none"; }
+  });
+  $("docFold").addEventListener("change", () => $("docCode").classList.toggle("on", $("docFold").checked));
+  $("docGo").addEventListener("click", submitDoc);
+
+  // sensible defaults: last real section, and the captured name if it's a preset
+  if (DEPTS.includes(lastRealDept)) $("docDept").value = lastRealDept;
+  const mine = document.querySelector(`#docChips button[data-name="${(userName || "").replace(/"/g, "")}"]`);
+  if (mine) mine.click();
+}
+
+async function submitDoc() {
+  if (!docFile) { docStatus("err", "Choose a file first."); return; }
+  const dept = $("docDept").value;
+  const sharer = (docSharer || $("docOther").value).trim();
+  if (!sharer) { docStatus("err", "Pick who shared this."); return; }
+  const fold = $("docFold").checked;
+  const code = $("docCode").value.trim();
+  if (fold && !code) { docStatus("err", "Enter the access code to fold into a new version."); return; }
+
+  const btn = $("docGo");
+  btn.disabled = true;
+  docStatus("", "Uploading…");
+  try {
+    const data_b64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result).split(",")[1] || "");
+      r.onerror = rej;
+      r.readAsDataURL(docFile);
+    });
+    const up = await fetch("/api/docs", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        dept, title: docFile.name.replace(/\.[^.]+$/, ""), shared_by: sharer,
+        file_name: docFile.name, mime: docFile.type || null, data_b64, text_content: docText,
+      }),
+    });
+    const upJson = await up.json();
+    if (!up.ok) throw new Error(upJson.error || `Upload failed (${up.status})`);
+    track("doc_shared", { doc_dept: dept, shared_by: sharer, mime: docFile.type });
+    if (addContributor(dept, sharer) && dept === current) renderContributors(dept);
+
+    if (fold) {
+      docStatus("", "Stored ✓ — Kee is folding it into a new version (1–2 minutes)…");
+      const gen = await fetch("/api/versions/generate", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ dept, access_code: code, created_by: userName || sharer }),
+      });
+      const genJson = await gen.json();
+      if (!gen.ok) docStatus("err", `Stored, but version generation failed: ${genJson.error || gen.status}`);
+      else {
+        docStatus("ok", `Stored ✓ and folded into ${META[dept]} v${genJson.version} (${genJson.applied} change${genJson.applied === 1 ? "" : "s"}).`);
+        delete versionLists[dept]; // version dropdown refreshes on next visit
+      }
+    } else {
+      docStatus("ok", "Stored ✓ — it will feed the next version of " + META[dept] + ".");
+    }
+    docFile = null; docText = "";
+    $("docFileLbl").innerHTML = `<b>Choose a file</b> — PDF · Word (.docx) · text · image`;
+    loadDocList();
+  } catch (err) {
+    docStatus("err", err.message || "Upload failed.");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+const DOC_ICO = (mime, name) =>
+  /^image\//.test(mime || "") ? "🖼" :
+  /pdf/.test(mime || "") || /\.pdf$/i.test(name || "") ? "📕" :
+  /\.docx?$/i.test(name || "") ? "📘" : "📄";
+
+async function loadDocList() {
+  const el = $("docList");
+  try {
+    const r = await fetch("/api/docs");
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      el.innerHTML = `<div class="act-empty">${esc(j.error || "Documents need the server connected — add the Supabase keys and this list lights up.")}</div>`;
+      return;
+    }
+    const { documents } = await r.json();
+    if (!documents?.length) { el.innerHTML = `<div class="act-empty">No documents yet.<br>Share the first piece of source material above.</div>`; return; }
+    const byDept = {};
+    for (const d of documents) (byDept[d.dept] = byDept[d.dept] || []).push(d);
+    el.innerHTML = DEPTS.filter((d) => byDept[d]).map((dept) => `
+      <div class="doc-group">
+        <div class="dg-t">${esc(META[dept])} <span style="font-weight:400;color:var(--ink3);font-size:12px">· ${byDept[dept].length}</span></div>
+        ${byDept[dept].map((d) => `
+          <div class="doc-item">
+            <div class="doc-ico">${DOC_ICO(d.mime, d.file_name)}</div>
+            <div class="di-b">
+              <div class="di-t">${esc(d.title)}</div>
+              <div class="di-m">shared by <b>${esc(d.shared_by || "unknown")}</b> · ${esc(fmtWhen(d.created_at))} · ${(d.size_bytes / 1024).toFixed(0)} KB</div>
+            </div>
+            <span class="di-fold ${d.version_folded ? "in" : "pending"}">${d.version_folded ? "in v" + d.version_folded : "next version"}</span>
+            ${d.url ? `<a class="di-dl" href="${d.url}" target="_blank" rel="noopener">Download</a>` : ""}
+          </div>`).join("")}
+      </div>`).join("");
+    // document sharers also count as shapers of their functions
+    for (const d of documents) addContributor(d.dept, d.shared_by);
+  } catch {
+    el.innerHTML = `<div class="act-empty">Couldn’t load documents. Check your connection.</div>`;
+  }
+}
+
+function renderDocs() {
+  buildDocsPanel();
+  loadDocList();
 }
 
 /* ====== Shell wiring ======================================================== */
