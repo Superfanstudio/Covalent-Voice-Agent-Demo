@@ -125,6 +125,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);
   font-size:11.5px;line-height:18px;text-align:center;}
 .fb-fab.hidden{display:none;}
 
+/* ---------- Covalent Kee FAB (green, next to Feedback) ---------- */
+.kee-fab{position:absolute;right:158px;bottom:22px;z-index:36;display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--sans);font-size:13.5px;font-weight:500;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#0f6e56,#0a4f3e);border:0;border-radius:100px;padding:11px 18px;
+  box-shadow:0 6px 22px rgba(10,79,62,.32);transition:transform .15s,box-shadow .15s;}
+.kee-fab:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(10,79,62,.42);}
+.kee-fab svg{width:16px;height:16px;}
+.kee-fab.hidden{display:none;}
+
 /* ---------- Drawers (feedback + Kee) ---------- */
 .fb-drawer,.kee-drawer{position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;z-index:60;
   background:var(--panel);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(20,16,12,.16);
@@ -216,6 +225,33 @@ body.kee-open .kee-drawer{transform:translateX(0);}
 .gen-progress.on{display:flex;}
 .gen-progress .spinner{width:20px;height:20px;border-width:2px;}
 
+/* ---------- Name modal (Covalent Kee) ---------- */
+.nm-brand{display:flex;align-items:center;gap:11px;margin-bottom:8px;}
+.nm-brand h2{margin:0;}
+.nm-logo{width:38px;height:38px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  color:#fff;background:linear-gradient(135deg,#0f6e56,#0a4f3e);box-shadow:0 4px 14px rgba(10,79,62,.3);}
+.nm-logo svg{width:18px;height:18px;}
+.name-opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.name-opts button{font-family:var(--sans);font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;
+  background:var(--panel2);border:1.5px solid var(--line2);border-radius:100px;padding:8px 15px;transition:border-color .12s,background .12s;}
+.name-opts button em{font-style:normal;font-size:10.5px;color:var(--ink3);margin-left:4px;letter-spacing:.04em;}
+.name-opts button:hover{border-color:var(--ink3);}
+.name-opts button.sel{background:var(--tealbg);border-color:#0f6e56;color:#0a4f3e;}
+.name-opts button.sel em{color:#0f6e56;}
+.nm-powered{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--serif);font-size:12px;color:var(--ink3);}
+.nm-powered b{color:var(--rust);font-weight:600;}
+
+/* ---------- Version-bar contributors ---------- */
+.vb-contrib{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;}
+.vb-contrib .vc-l{font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;font-weight:600;white-space:nowrap;}
+.vb-chip{display:inline-flex;align-items:center;gap:5px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:100px;padding:3px 9px 3px 4px;font-size:11.5px;font-weight:500;color:var(--ink2);white-space:nowrap;}
+.vb-chip i{width:16px;height:16px;border-radius:50%;font-style:normal;font-size:9px;font-weight:600;color:#fff;
+  display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--rust),#7e3220);}
+.vb-chip:nth-child(3n) i{background:linear-gradient(135deg,#0f6e56,#0a4f3e);}
+.vb-chip:nth-child(3n+1) i{background:linear-gradient(135deg,#8a6d1d,#6b540f);}
+@media(max-width:1080px){.vb-contrib{display:none;}}
+
 /* ---------- Activity log ---------- */
 .activity{position:absolute;inset:0;overflow-y:auto;padding:30px 26px 90px;opacity:0;pointer-events:none;transition:opacity .2s;}
 .activity.show{opacity:1;pointer-events:auto;}
@@ -257,6 +293,7 @@ body.kee-open .kee-drawer{transform:translateX(0);}
   body.nav-open .sidebar{transform:translateX(0);}
   body.nav-open .scrim{opacity:1;pointer-events:auto;}
   .fb-fab{right:16px;bottom:16px;}
+  .kee-fab{right:auto;left:16px;bottom:16px;}
   .verbar .vb-title{display:none;}
 }
 </style>
@@ -297,10 +334,6 @@ body.kee-open .kee-drawer{transform:translateX(0);}
 </div>
     </nav>
     <div class="side-footer">
-      <button class="kee-cta" id="keeCta" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-        <span class="kc-t"><span class="kc-l">Talk to Kee</span><span class="kc-d" id="keeCtaDept">about this function</span></span>
-      </button>
       <div class="pk">Powered by <b>KeeMakr</b></div>
       <div class="rev">Rev. 2026-06-09b</div>
     </div>
@@ -316,6 +349,7 @@ body.kee-open .kee-drawer{transform:translateX(0);}
     <div class="verbar" id="verbar">
       <div class="vb-title" id="vbTitle">—</div>
       <span class="vb-old" id="vbOld">Viewing an older version — read-only history</span>
+      <div class="vb-contrib" id="vbContrib"></div>
       <div class="vb-spacer"></div>
       <select class="vb-select" id="vbSelect" title="Document version"></select>
       <button class="vb-gen" id="vbGen" type="button">✦ New version</button>
@@ -323,6 +357,10 @@ body.kee-open .kee-drawer{transform:translateX(0);}
     <div class="frames" id="frames">
       <div class="loader" id="loader"><div class="spinner"></div><div>Loading…</div></div>
       <div class="activity" id="activityPanel"></div>
+      <button class="kee-fab" id="keeCta" type="button" aria-label="Talk to Covalent Kee">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <span>Covalent Kee</span>
+      </button>
       <button class="fb-fab" id="fbFab" type="button" aria-label="Open feedback">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span>Feedback</span><span class="fb-fab-count" id="fbFabCount" style="display:none">0</span>
@@ -380,16 +418,30 @@ body.kee-open .kee-drawer{transform:translateX(0);}
     </div>
   </aside>
 
-  <!-- Name capture (first load) -->
+  <!-- Name capture (first load) — Covalent Kee -->
   <div class="modal-scrim" id="nameModal">
     <div class="modal">
-      <h2>Welcome to the Covalent OS</h2>
-      <p>What's your name? It signs your feedback and your voice calls with Kee, so the team knows whose input shaped each version.</p>
-      <input type="text" id="nameInput" maxlength="80" placeholder="Your name" autocomplete="name">
+      <div class="nm-brand">
+        <div class="nm-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </div>
+        <h2>Covalent Kee</h2>
+      </div>
+      <p>Who's here? Your name signs your feedback and your voice calls, and appears on the functions you've shaped.</p>
+      <div class="name-opts" id="nameOpts">
+        <button type="button" data-name="Dr. M">Dr. M <em>Covalent</em></button>
+        <button type="button" data-name="Manny">Manny <em>Covalent</em></button>
+        <button type="button" data-name="Keith">Keith <em>Covalent</em></button>
+        <button type="button" data-name="Sne">Sne <em>KeeMakr</em></button>
+        <button type="button" data-name="Raj">Raj <em>KeeMakr</em></button>
+        <button type="button" data-name="__other" id="nameOther">Other…</button>
+      </div>
+      <input type="text" id="nameInput" maxlength="80" placeholder="Your name" autocomplete="name" style="display:none">
       <div class="m-actions">
         <button class="m-go" id="nameGo" type="button">Let's go</button>
       </div>
       <div class="m-status" id="nameStatus"></div>
+      <div class="nm-powered">Powered by <b>KeeMakr</b></div>
     </div>
   </div>
 
@@ -455,14 +507,28 @@ function identify() {
 })();
 function track(event, props) { try { ph && ph.capture(event, { dept: current, version: selectedVersion[current], ...props }); } catch {} }
 
-/* ====== Name modal ========================================================== */
+/* ====== Name modal (Covalent Kee) =========================================== */
+let presetName = "";
 function askName() {
   $("nameModal").classList.add("open");
-  setTimeout(() => $("nameInput").focus(), 80);
 }
+$("nameOpts").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-name]");
+  if (!btn) return;
+  document.querySelectorAll("#nameOpts button").forEach((b) => b.classList.toggle("sel", b === btn));
+  if (btn.dataset.name === "__other") {
+    presetName = "";
+    $("nameInput").style.display = "";
+    $("nameInput").focus();
+  } else {
+    presetName = btn.dataset.name;
+    $("nameInput").style.display = "none";
+    $("nameStatus").textContent = "";
+  }
+});
 function submitName() {
-  const v = $("nameInput").value.trim();
-  if (!v) { $("nameStatus").className = "m-status err"; $("nameStatus").textContent = "Please add your name — it only takes a second."; return; }
+  const v = (presetName || $("nameInput").value).trim();
+  if (!v) { $("nameStatus").className = "m-status err"; $("nameStatus").textContent = "Pick a name or type yours under Other — it only takes a second."; return; }
   userName = v;
   localStorage.setItem("cov_user_name", v);
   try { sessionStorage.setItem("covFbName", v); } catch {}
@@ -567,6 +633,7 @@ function renderVersionBar(dept) {
   ).join("");
   sel.value = String(selectedVersion[dept]);
   verbar.classList.toggle("viewing-old", selectedVersion[dept] !== latestVersion[dept]);
+  renderContributors(dept);
 }
 
 async function show(dept) {
@@ -576,7 +643,7 @@ async function show(dept) {
 
   document.querySelectorAll(".nav-item").forEach((a) => a.classList.toggle("active", a.getAttribute("data-dept") === dept));
   $("topbarTitle").textContent = META[dept] || "Covalent";
-  $("keeCtaDept").textContent = NO_DOC(dept) ? "about this workbook" : "about " + META[dept];
+  $("keeCta").classList.toggle("hidden", NO_DOC(dept));
   $("fbFab").classList.toggle("hidden", NO_DOC(dept));
   renderVersionBar(dept);
 
@@ -703,11 +770,34 @@ function loadThread(dept) {
     ).join("");
   }).catch(() => { thread.innerHTML = '<div class="fb-empty">Couldn’t load comments. Check your connection.</div>'; });
 }
+// Who has contributed feedback to each function — shown on the section itself.
+const contribByDept = {};
+function addContributor(dept, name) {
+  const n = (name || "").trim();
+  if (!n) return false;
+  contribByDept[dept] = contribByDept[dept] || [];
+  if (contribByDept[dept].some((x) => x.toLowerCase() === n.toLowerCase())) return false;
+  contribByDept[dept].push(n);
+  return true;
+}
+function renderContributors(dept) {
+  const el = $("vbContrib");
+  const names = contribByDept[dept] || [];
+  if (!names.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `<span class="vc-l">Shaped by</span>` + names.slice(0, 6).map((n) =>
+    `<span class="vb-chip"><i>${esc(initials(n))}</i>${esc(n)}</span>`
+  ).join("") + (names.length > 6 ? `<span class="vb-chip">+${names.length - 6}</span>` : "");
+}
 function refreshAllCounts() {
-  fetch(REST + "?select=dept&limit=10000", { headers: HEADERS }).then((r) => r.json()).then((rows) => {
+  fetch(REST + "?select=dept,author_name&order=created_at.asc&limit=10000", { headers: HEADERS }).then((r) => r.json()).then((rows) => {
     if (!Array.isArray(rows)) return;
-    const tally = {}; rows.forEach((x) => { tally[x.dept] = (tally[x.dept] || 0) + 1; });
+    const tally = {};
+    rows.forEach((x) => {
+      tally[x.dept] = (tally[x.dept] || 0) + 1;
+      addContributor(x.dept, x.author_name);
+    });
     DEPTS.forEach((d) => setCount(d, tally[d] || 0));
+    if (current && !NO_DOC(current)) renderContributors(current);
   }).catch(() => {});
 }
 function postComment() {
@@ -730,6 +820,7 @@ function postComment() {
       status.className = "fb-status ok"; status.textContent = "Posted ✓";
       setTimeout(() => { status.textContent = ""; }, 2500);
       loadThread(current);
+      if (addContributor(current, name)) renderContributors(current);   // their name now marks this function
       track("feedback_posted", { user_name: name });
     } else { status.className = "fb-status err"; status.textContent = "Could not post (" + r.status + ")."; }
   }).catch(() => { btn.disabled = false; status.className = "fb-status err"; status.textContent = "Network error."; });
