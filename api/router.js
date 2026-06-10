@@ -1,5 +1,8 @@
-// Vercel catch-all for every /api/* route except /api/token (token.js wins by
-// being a more specific file). Delegates to the shared router.
+// Vercel handler for every /api/* route except /api/token (token.js wins by
+// filesystem precedence). Reached via the vercel.json rewrite
+//   /api/:path*  →  /api/router?p=:path*
+// because bracket catch-all files ([...path].js) don't match nested segments
+// on this project. Delegates to the shared router.
 import { route } from "../lib/router.js";
 
 async function readBody(req) {
@@ -13,6 +16,12 @@ async function readBody(req) {
 
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  // Path arrives via the rewrite's ?p= param; fall back to the URL path for
+  // direct hits (e.g. /api/router?p=... or a platform that preserves the path).
+  const p = url.searchParams.get("p");
+  url.searchParams.delete("p");
+  const pathname = p ? `/api/${p}` : url.pathname;
+
   const query = Object.fromEntries(url.searchParams.entries());
   const body = ["POST", "PATCH", "PUT", "DELETE"].includes(req.method)
     ? await readBody(req)
@@ -20,7 +29,7 @@ export default async function handler(req, res) {
 
   const { status, json } = await route({
     method: req.method,
-    pathname: url.pathname,
+    pathname,
     query,
     body,
     headers: req.headers,

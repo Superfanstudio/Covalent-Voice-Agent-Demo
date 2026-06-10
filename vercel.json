@@ -5,7 +5,8 @@
   "outputDirectory": ".",
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/demo", "destination": "/demo.html" }
+    { "source": "/demo", "destination": "/demo.html" },
+    { "source": "/api/:path*", "destination": "/api/router?p=:path*" }
   ],
   "functions": {
     "api/*.js": { "maxDuration": 300 }
