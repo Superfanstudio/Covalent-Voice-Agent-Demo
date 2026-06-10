@@ -85,6 +85,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);
 .verbar .vb-spacer{flex:1;}
 .vb-select{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--panel2);
   border:1px solid var(--line2);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:200px;}
+.vb-print{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:500;
+  color:var(--ink2);cursor:pointer;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;
+  padding:6px 12px;white-space:nowrap;transition:background .14s,color .14s;}
+.vb-print:hover{background:rgba(40,34,28,.06);color:var(--ink);}
+.vb-print svg{width:14px;height:14px;}
+@media(max-width:880px){.vb-print span{display:none;}.vb-print{padding:6px 9px;}}
 .vb-gen{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12.5px;font-weight:500;
   color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:8px;
   padding:7px 13px;white-space:nowrap;transition:opacity .15s;}
@@ -351,6 +357,10 @@ body.kee-open .kee-drawer{transform:translateX(0);}
       <span class="vb-old" id="vbOld">Viewing an older version — read-only history</span>
       <div class="vb-contrib" id="vbContrib"></div>
       <div class="vb-spacer"></div>
+      <button class="vb-print" id="vbPrint" type="button" title="Print this function or save it as a PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span>Print / Save PDF</span>
+      </button>
       <select class="vb-select" id="vbSelect" title="Document version"></select>
       <button class="vb-gen" id="vbGen" type="button">✦ New version</button>
     </div>
@@ -686,6 +696,32 @@ $("vbSelect").addEventListener("change", async () => {
   if (f.dataset.ready) reveal();
   else { f.addEventListener("load", () => { f.dataset.ready = "1"; reveal(); }, { once: true }); setTimeout(reveal, 1500); }
   track("version_viewed", { viewed_version: v });
+});
+
+/* ====== Print / Save PDF ===================================================== */
+// Print the active section's own document. If the section is itself a thin
+// shell around a full-viewport iframe (the Sales workshop), print the inner
+// page instead so the content isn't clipped to one frame.
+function printTarget(win, depth = 0) {
+  try {
+    const doc = win.document;
+    if (depth < 3 && doc.body) {
+      const inner = [...doc.querySelectorAll("iframe")].find((f) => {
+        const r = f.getBoundingClientRect();
+        return r.height > win.innerHeight * 0.7 && r.width > win.innerWidth * 0.7;
+      });
+      if (inner && inner.contentWindow) return printTarget(inner.contentWindow, depth + 1);
+    }
+  } catch { /* cross-origin or detached — print what we have */ }
+  return win;
+}
+$("vbPrint").addEventListener("click", () => {
+  if (NO_DOC(current)) return;
+  const f = frames[`${current}@${selectedVersion[current]}`];
+  if (!f || !f.contentWindow) return;
+  const win = printTarget(f.contentWindow);
+  track("print_pdf", {});
+  try { win.focus(); win.print(); } catch (e) { console.error(e); }
 });
 
 /* ====== Generate new version ================================================ */
