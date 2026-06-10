@@ -220,6 +220,12 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 .kt-turn.user{align-self:flex-end;align-items:flex-end;}
 .kt-turn.user .bub{background:var(--panel2);border:1px solid var(--line);border-bottom-right-radius:5px;}
 .kee-empty{color:var(--ink3);font-size:13px;text-align:center;padding:36px 18px;line-height:1.6;}
+.guide-list{display:flex;flex-direction:column;gap:4px;padding:4px 2px;}
+.g-i{display:flex;gap:11px;padding:9px 6px;border-bottom:1px solid rgba(40,34,28,.06);font-size:12.5px;line-height:1.5;color:var(--ink2);}
+.g-i:last-child{border-bottom:0;}
+.g-i i{font-style:normal;flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--panel2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.g-i b{color:var(--ink);}
 .kee-ctrl{padding:14px 20px 18px;border-top:1px solid var(--line);flex:0 0 auto;display:flex;align-items:center;gap:9px;}
 .kee-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:13px;font-weight:500;
   cursor:pointer;border-radius:9px;padding:9px 14px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);}
@@ -1297,8 +1303,24 @@ function openKee() {
   $("keeDrawer").setAttribute("aria-hidden", "false");
   $("keeTitle").textContent = "Covalent Kee";
   $("keeSub").innerHTML = `A five-minute voice discovery call on <b>${esc(META[current])}</b> (v${selectedVersion[current] || 1})`;
+  // restore the call empty-state if the guide text is showing and no call ran
+  if (!document.querySelector("#keeTranscript .kt-turn")) {
+    $("keeTranscript").innerHTML = `<div class="kee-empty" id="keeEmpty">Kee runs a short, six-question voice interview about the function you're viewing — and she's read the page, so you can also ask her about it.<br><br>Click <b>Start call</b>, allow the microphone, and talk naturally.</div>`;
+  }
   track("kee_opened", {});
 }
+const GUIDE_HTML = `
+<div class="guide-list">
+  <div class="g-i"><i>📖</i><div><b>Read</b> — pick a function in the sidebar to read its current document. The dropdown in the top bar shows every published version; changes are highlighted with a changelog up top.</div></div>
+  <div class="g-i"><i>🎙</i><div><b>Talk</b> — the green <b>Covalent Kee</b> button starts a five-minute voice interview about the function you're viewing. Kee has read the page and remembers everything that's happened, so you can also just ask her things.</div></div>
+  <div class="g-i"><i>💬</i><div><b>Comment</b> — the <b>Feedback</b> button posts written notes on the current function. Your name appears in its "Shaped by" chips.</div></div>
+  <div class="g-i"><i>📎</i><div><b>Share</b> — the <b>Documents</b> tab takes Word, PDF, text, or images, attributed to whoever shared them. Files are stored raw and feed the next version.</div></div>
+  <div class="g-i"><i>✦</i><div><b>Evolve</b> — everything above (calls, comments, documents) gets folded into the next published version of each function, generated with the access code. The <b>Activity Log</b> shows who contributed what.</div></div>
+  <div class="g-i"><i>🖨</i><div><b>Print / Save PDF</b> — top bar, prints whichever version you're viewing.</div></div>
+  <div class="g-i"><i>🤖</i><div><b>Agent Mode</b> — KeeMakr operators stage draft edits and publish after approval (access code required).</div></div>
+</div>
+<div class="kee-empty" style="padding:14px 18px 4px">Prefer it spoken? Click <b>Start call</b> below and Kee gives you the tour — and answers anything.</div>`;
+
 function openGuide() {
   if (active) return;            // a discovery call is live — don't hijack it
   guideMode = true;
@@ -1306,7 +1328,8 @@ function openGuide() {
   document.body.classList.add("kee-open");
   $("keeDrawer").setAttribute("aria-hidden", "false");
   $("keeTitle").textContent = "Covalent Kee";
-  $("keeSub").innerHTML = `<b>How to use this workbook</b> — a quick voice tour, or ask anything`;
+  $("keeSub").innerHTML = `<b>How to use this workbook</b> — quick guide below, or take the voice tour`;
+  if (!document.querySelector("#keeTranscript .kt-turn")) $("keeTranscript").innerHTML = GUIDE_HTML;
   track("guide_opened", {});
   closeNav();
 }
