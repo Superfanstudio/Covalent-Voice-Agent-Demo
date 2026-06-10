@@ -1,5 +1,6 @@
-// Covalent Voice Agent — local dev server.
-// Serves the demo page + admin panel, mints single-use Voice Agent tokens, and
+// Covalent Discovery — local dev server.
+// Serves the Operating System shell (index.html), the original voice demo
+// (demo.html), and the admin panel; mints single-use Voice Agent tokens; and
 // delegates every other /api/* route to the shared router (Supabase + PostHog).
 
 import { createServer } from "node:http";
@@ -48,6 +49,19 @@ async function serveFile(res, name, type) {
   res.end(data);
 }
 
+// Static routes: path → [file, content-type]
+const STATIC = {
+  "/": ["index.html", "text/html; charset=utf-8"],
+  "/index.html": ["index.html", "text/html; charset=utf-8"],
+  "/demo": ["demo.html", "text/html; charset=utf-8"],
+  "/demo.html": ["demo.html", "text/html; charset=utf-8"],
+  "/admin": ["admin.html", "text/html; charset=utf-8"],
+  "/admin.html": ["admin.html", "text/html; charset=utf-8"],
+  "/personas.js": ["personas.js", "text/javascript; charset=utf-8"],
+  "/data/depts.json": ["data/depts.json", "application/json; charset=utf-8"],
+  "/covalent-medical-logo.svg": ["covalent-medical-logo.svg", "image/svg+xml; charset=utf-8"],
+};
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
@@ -69,14 +83,8 @@ const server = createServer(async (req, res) => {
     }
 
     // Pages & assets
-    if (path === "/" || path === "/index.html") {
-      return serveFile(res, "index.html", "text/html; charset=utf-8");
-    }
-    if (path === "/admin" || path === "/admin.html") {
-      return serveFile(res, "admin.html", "text/html; charset=utf-8");
-    }
-    if (path === "/covalent-medical-logo.svg") {
-      return serveFile(res, "covalent-medical-logo.svg", "image/svg+xml; charset=utf-8");
+    if (STATIC[path]) {
+      return serveFile(res, STATIC[path][0], STATIC[path][1]);
     }
 
     res.writeHead(404, { "content-type": "text/plain" });
@@ -88,6 +96,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  Covalent Voice Agent → http://localhost:${PORT}`);
-  console.log(`  Admin panel          → http://localhost:${PORT}/admin\n`);
+  console.log(`\n  Covalent Operating System → http://localhost:${PORT}`);
+  console.log(`  Voice demo (v1)           → http://localhost:${PORT}/demo`);
+  console.log(`  Admin panel               → http://localhost:${PORT}/admin\n`);
 });

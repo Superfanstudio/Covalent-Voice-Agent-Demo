@@ -4,9 +4,10 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/demo", "destination": "/demo.html" }
   ],
   "functions": {
-    "api/*.js": { "maxDuration": 30 }
+    "api/*.js": { "maxDuration": 300 }
   }
 }

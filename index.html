@@ -1,326 +1,405 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ICP Discovery Agent · Covalent × KeeMakr.ai</title>
-<link rel="icon" type="image/svg+xml" href="/covalent-medical-logo.svg" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Covalent · Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    /* Covalent Medical palette — charcoal wordmark + blue orbit swoosh */
-    --ink: #2b3138;            /* charcoal (Covalent wordmark) */
-    --ink-soft: #5b6671;       /* MEDICAL gray */
-    --line: #e2e9f1;
-    --bg: #f4f8fd;
-    --card: #ffffff;
-    --brand: #1f8fe8;          /* covalent blue (mid swoosh) */
-    --brand-deep: #1450c0;     /* deep royal blue (arrowhead) */
-    --brand-light: #54c1f5;    /* sky blue (top of swoosh) */
-    --brand-tint: #e8f3fe;     /* pale blue surface */
-    --brand-tint-line: #c4e1fb;
-    --accent: #1450c0;         /* deep blue accent */
-    --accent-soft: #eaf2ff;
-    --user: #1450c0;
-    --agent: #1f8fe8;
-    --shadow: 0 18px 50px -24px rgba(20,40,70,.35);
-    --radius: 18px;
-    font-synthesis: none;
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
-    color: var(--ink);
-    background:
-      radial-gradient(1100px 600px at 85% -10%, #def0fe 0%, transparent 55%),
-      radial-gradient(900px 500px at 0% 0%, #e9f1ff 0%, transparent 50%),
-      var(--bg);
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
-  }
+:root{
+  --bg:#f4f1e9; --panel:#ffffff; --panel2:#faf8f1;
+  --line:rgba(40,34,28,0.13); --line2:rgba(40,34,28,0.22);
+  --ink:#24211c; --ink2:#5e5a52; --ink3:#928d83;
+  --rust:#a3432d; --rustbg:rgba(163,67,45,0.08);
+  --teal:#0f6e56; --tealbg:rgba(15,110,86,0.08);
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter Tight',system-ui,sans-serif;
+  --sidebar:296px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+  display:flex;overflow:hidden;-webkit-font-smoothing:antialiased;}
 
-  /* ---------- Header ---------- */
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px clamp(20px, 5vw, 56px);
-    border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(6px);
-    background: rgba(255,255,255,.6);
-    position: sticky; top: 0; z-index: 10;
-  }
-  .brand { display: flex; align-items: center; gap: 16px; }
+/* ---------- Sidebar ---------- */
+.sidebar{width:var(--sidebar);flex:0 0 var(--sidebar);height:100vh;
+  background:linear-gradient(180deg,#faf8f1,#f1ede2);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+  position:relative;z-index:40;transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.brand{padding:22px 22px 16px;border-bottom:1px solid var(--line);}
+.brand-mark{display:flex;align-items:center;gap:10px;}
+.brand-logo{width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--rust),#7e3220);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:var(--serif);font-weight:600;font-size:17px;}
+.brand-name{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.01em;line-height:1;}
+.brand-sub{font-size:11px;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;margin-top:5px;}
+.brand-gen{font-size:10.5px;color:var(--ink3);margin-top:11px;letter-spacing:.02em;}
 
-  /* ----- Covalent Medical logo ----- */
-  .logo { display: block; height: 52px; width: auto; user-select: none; }
-  @media (max-width: 620px) { .logo { height: 42px; } }
-  .brand .sub {
-    border-left: 1px solid var(--line); padding-left: 16px; align-self: center;
-  }
-  .brand .sub b { font-size: 14px; letter-spacing: -.01em; color: var(--ink); }
-  .brand .sub small { display: block; color: var(--ink-soft); font-size: 11.5px; font-weight: 500; }
-  @media (max-width: 620px) { .brand .sub { display: none; } }
+.nav{flex:1;overflow-y:auto;padding:14px 12px 8px;}
+.nav-group{margin-bottom:14px;}
+.nav-group-label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);font-weight:600;padding:6px 12px 8px;}
+.nav-item{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:11px;
+  text-decoration:none;color:var(--ink2);transition:background .14s,color .14s;cursor:pointer;}
+.nav-item:hover{background:rgba(40,34,28,0.045);color:var(--ink);}
+.nav-item.active{background:var(--rustbg);color:var(--ink);}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--line2);margin-top:6px;flex:0 0 auto;transition:background .14s,transform .14s;}
+.nav-item:hover .nav-dot{background:var(--ink3);}
+.nav-item.active .nav-dot{background:var(--rust);transform:scale(1.25);}
+.nav-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.nav-label{font-size:14px;font-weight:500;line-height:1.2;}
+.nav-desc{font-size:11.5px;color:var(--ink3);line-height:1.3;}
+.nav-item.active .nav-desc{color:var(--ink2);}
 
-  .pill {
-    font-size: 12px; font-weight: 600; color: var(--brand-deep);
-    background: var(--brand-tint); border: 1px solid var(--brand-tint-line);
-    padding: 6px 12px; border-radius: 999px;
-  }
+.side-footer{padding:14px 16px 18px;border-top:1px solid var(--line);}
+.kee-cta{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  background:linear-gradient(135deg,#0f6e56,#0a4f3e);border:0;border-radius:12px;padding:12px 14px;color:#fff;
+  font-family:var(--sans);box-shadow:0 5px 18px rgba(10,79,62,.28);transition:transform .15s,box-shadow .15s;margin-bottom:12px;}
+.kee-cta:hover{transform:translateY(-1px);box-shadow:0 9px 24px rgba(10,79,62,.36);}
+.kee-cta svg{width:18px;height:18px;flex:0 0 auto;}
+.kee-cta .kc-t{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.kee-cta .kc-l{font-size:13.5px;font-weight:600;line-height:1.2;}
+.kee-cta .kc-d{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.side-footer .pk{font-family:var(--serif);font-size:13px;color:var(--ink2);}
+.side-footer .pk b{color:var(--rust);font-weight:600;}
+.side-footer .rev{font-size:10.5px;color:var(--ink3);margin-top:4px;letter-spacing:.03em;}
 
-  /* ---------- Layout ---------- */
-  main {
-    max-width: 1080px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(20px, 5vw, 56px) 64px;
-    display: grid; gap: 28px;
-    grid-template-columns: 1.05fr .95fr;
-  }
-  @media (max-width: 880px) { main { grid-template-columns: 1fr; } }
+/* ---------- Main ---------- */
+.main{flex:1;height:100vh;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:none;align-items:center;gap:12px;height:54px;padding:0 14px;
+  background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto;z-index:30;}
+.hamb{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel2);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.hamb span{display:block;width:17px;height:2px;background:var(--ink);position:relative;}
+.hamb span::before,.hamb span::after{content:"";position:absolute;left:0;width:17px;height:2px;background:var(--ink);}
+.hamb span::before{top:-5px;} .hamb span::after{top:5px;}
+.topbar-title{font-family:var(--serif);font-weight:600;font-size:16px;}
 
-  .hero h1 {
-    font-size: clamp(30px, 4.6vw, 46px); line-height: 1.05; letter-spacing: -.025em;
-    margin: 4px 0 14px;
-  }
-  .hero h1 span { color: var(--brand-deep); }
-  .lead { font-size: 17px; color: var(--ink-soft); max-width: 46ch; margin: 0 0 24px; }
-  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 7px;
-    font-size: 13px; font-weight: 600; color: var(--ink);
-    background: var(--card); border: 1px solid var(--line);
-    padding: 8px 13px; border-radius: 999px;
-  }
-  .chip i { width: 7px; height: 7px; border-radius: 999px; background: var(--brand); }
+/* ---------- Version bar ---------- */
+.verbar{display:flex;align-items:center;gap:10px;padding:9px 16px;background:var(--panel);
+  border-bottom:1px solid var(--line);flex:0 0 auto;z-index:28;min-height:48px;}
+.verbar .vb-title{font-family:var(--serif);font-weight:600;font-size:15.5px;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.verbar .vb-spacer{flex:1;}
+.vb-select{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line2);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:200px;}
+.vb-gen{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12.5px;font-weight:500;
+  color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:8px;
+  padding:7px 13px;white-space:nowrap;transition:opacity .15s;}
+.vb-gen:hover{opacity:.92;}
+.vb-old{display:none;font-size:11.5px;color:#8a6d1d;background:#fdf4dd;border:1px solid #ecdcae;
+  border-radius:7px;padding:4px 9px;white-space:nowrap;}
+.verbar.viewing-old .vb-old{display:inline-block;}
+.verbar.hidden{display:none;}
 
-  .agenda { display: grid; gap: 9px; margin-top: 8px; }
-  .agenda .q {
-    display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start;
-    font-size: 14px; color: var(--ink-soft);
-  }
-  .agenda .n {
-    width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
-    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 12px;
-  }
-  .agenda .q b { color: var(--ink); font-weight: 600; }
+.frames{position:relative;flex:1;min-height:0;background:var(--bg);}
+.frame{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;
+  pointer-events:none;transition:opacity .2s;}
+.frame.show{opacity:1;pointer-events:auto;}
 
-  /* ---------- Call card ---------- */
-  .panel {
-    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-    box-shadow: var(--shadow); overflow: hidden; align-self: start;
-    display: flex; flex-direction: column; min-height: 540px;
-  }
-  .panel-top {
-    padding: 22px 24px 8px; text-align: center;
-    border-bottom: 1px solid var(--line);
-  }
-  .status {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 600; color: var(--ink-soft);
-    background: var(--bg); border: 1px solid var(--line);
-    padding: 6px 13px; border-radius: 999px; margin-bottom: 18px;
-  }
-  .status .dot { width: 8px; height: 8px; border-radius: 999px; background: #9aa7b6; transition: background .2s; }
-  .status[data-s="live"]      .dot { background: var(--brand); }
-  .status[data-s="listening"] .dot { background: var(--accent); animation: blink 1s infinite; }
-  .status[data-s="speaking"]  .dot { background: var(--brand); animation: blink .6s infinite; }
-  .status[data-s="error"]     .dot { background: #e2574c; }
-  @keyframes blink { 50% { opacity: .25; } }
+.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:14px;color:var(--ink3);font-size:13px;letter-spacing:.04em;}
+.spinner{width:26px;height:26px;border:2.5px solid var(--line);border-top-color:var(--rust);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  /* Orb */
-  .orb-wrap { display: grid; place-items: center; padding: 4px 0 22px; }
-  .orb {
-    --size: 132px;
-    width: var(--size); height: var(--size); border-radius: 999px;
-    position: relative; cursor: pointer; border: none; padding: 0;
-    background: linear-gradient(140deg, var(--brand-light), var(--brand) 48%, var(--brand-deep));
-    color: #fff; display: grid; place-items: center;
-    box-shadow: 0 16px 40px -12px rgba(31,143,232,.6);
-    transition: transform .15s ease, box-shadow .2s;
-  }
-  .orb:hover { transform: translateY(-2px); }
-  .orb:active { transform: translateY(0); }
-  .orb svg { width: 46px; height: 46px; }
-  .orb .ring {
-    position: absolute; inset: -6px; border-radius: 999px;
-    border: 2px solid var(--brand); opacity: 0; pointer-events: none;
-  }
-  .orb.on .ring { animation: pulse 1.8s ease-out infinite; }
-  .orb.on .ring:nth-child(2) { animation-delay: .6s; }
-  .orb.on .ring:nth-child(3) { animation-delay: 1.2s; }
-  @keyframes pulse { 0% { transform: scale(1); opacity:.6; } 100% { transform: scale(1.7); opacity:0; } }
-  .orb.speaking { animation: bob 1.1s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: scale(1.05); } }
-  .orb-label { margin-top: 14px; font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+.scrim{position:fixed;inset:0;background:rgba(20,16,12,.4);opacity:0;pointer-events:none;
+  transition:opacity .25s;z-index:35;}
 
-  /* Transcript */
-  .transcript {
-    flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px;
-    background: linear-gradient(180deg, #fbfdff, #fff);
-  }
-  .empty {
-    margin: auto; text-align: center; color: #93a1b1; font-size: 14px; max-width: 26ch;
-  }
-  .turn { max-width: 84%; }
-  .turn .who { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-  .turn .bubble {
-    padding: 10px 14px; border-radius: 14px; font-size: 14.5px; line-height: 1.45;
-  }
-  .turn.agent { align-self: flex-start; }
-  .turn.agent .who { color: var(--agent); }
-  .turn.agent .bubble { background: #eaf4fe; border: 1px solid #cfe6fb; border-bottom-left-radius: 5px; }
-  .turn.user { align-self: flex-end; text-align: right; }
-  .turn.user .who { color: var(--user); }
-  .turn.user .bubble { background: var(--accent-soft); border: 1px solid #d8e3ff; border-bottom-right-radius: 5px; text-align: left; }
-  .turn.partial .bubble { opacity: .6; font-style: italic; }
-  .turn.agent.live .bubble::after {
-    content: "▍"; color: var(--agent); margin-left: 1px; font-weight: 400;
-    animation: blink 1s steps(1) infinite;
-  }
+/* ---------- Sidebar count badge ---------- */
+.nav-count{margin-left:auto;flex:0 0 auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;
+  background:var(--rustbg);color:var(--rust);font-size:11px;font-weight:600;line-height:20px;text-align:center;
+  align-self:center;opacity:0;transition:opacity .2s;}
+.nav-count.show{opacity:1;}
 
-  /* Controls */
-  .controls {
-    padding: 16px 22px 22px; border-top: 1px solid var(--line);
-    display: flex; gap: 12px; align-items: center; justify-content: center;
-  }
-  .controls label { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
-  select {
-    font: inherit; font-size: 13px; padding: 8px 12px; border-radius: 10px;
-    border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer;
-  }
-  .btn-end {
-    font: inherit; font-weight: 600; font-size: 14px; color: #fff;
-    background: #e2574c; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer;
-    display: none;
-  }
-  .btn-end:hover { background: #cf473d; }
-  .btn-mute {
-    font: inherit; font-weight: 600; font-size: 14px; color: var(--brand-deep);
-    background: var(--brand-tint); border: 1px solid var(--brand-tint-line);
-    padding: 10px 18px; border-radius: 10px; cursor: pointer;
-    display: none; align-items: center; gap: 8px;
-  }
-  .btn-mute svg { width: 16px; height: 16px; }
-  .btn-mute:hover { background: #dcecfd; }
-  .btn-mute.muted { color: #fff; background: var(--ink); border-color: var(--ink); }
-  .live .btn-end { display: inline-block; }
-  .live .btn-mute { display: inline-flex; }
-  .live select { display: none; }
-  .live label { display: none; }
+/* ---------- Feedback FAB ---------- */
+.fb-fab{position:absolute;right:22px;bottom:22px;z-index:36;display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--sans);font-size:13.5px;font-weight:500;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:100px;padding:11px 18px;
+  box-shadow:0 6px 22px rgba(126,50,32,.32);transition:transform .15s,box-shadow .15s;}
+.fb-fab:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(126,50,32,.4);}
+.fb-fab svg{width:16px;height:16px;}
+.fb-fab .fb-fab-count{background:rgba(255,255,255,.22);border-radius:100px;min-width:20px;padding:0 6px;
+  font-size:11.5px;line-height:18px;text-align:center;}
+.fb-fab.hidden{display:none;}
 
-  /* Agent switcher */
-  .switcher {
-    display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 22px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    box-shadow: 0 4px 14px -10px rgba(13,27,42,.3);
-  }
-  .switcher button {
-    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
-    background: transparent; border: none; padding: 9px 16px; border-radius: 10px;
-    cursor: pointer; transition: background .15s, color .15s; white-space: nowrap;
-  }
-  .switcher button:hover { color: var(--ink); }
-  .switcher button[aria-selected="true"] {
-    background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff;
-    box-shadow: 0 8px 18px -10px rgba(31,143,232,.6);
-  }
-  .switcher.locked { opacity: .5; pointer-events: none; }
+/* ---------- Drawers (feedback + Kee) ---------- */
+.fb-drawer,.kee-drawer{position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;z-index:60;
+  background:var(--panel);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(20,16,12,.16);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+body.fb-open .fb-drawer{transform:translateX(0);}
+body.kee-open .kee-drawer{transform:translateX(0);}
+.fb-hd{padding:20px 22px 16px;border-bottom:1px solid var(--line);flex:0 0 auto;}
+.fb-hd-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.fb-title{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
+.fb-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--ink2);cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;}
+.fb-close:hover{background:rgba(40,34,28,.05);color:var(--ink);}
+.fb-sub{font-size:12.5px;color:var(--ink3);margin-top:5px;}
+.fb-sub b{color:var(--rust);font-weight:600;}
 
-  footer { text-align: center; color: #9aa7b6; font-size: 12.5px; padding: 0 0 38px; }
-  footer code { background: #eef2f6; padding: 2px 6px; border-radius: 5px; font-size: 12px; }
-  a { color: var(--accent); }
+.fb-form{padding:16px 22px;border-bottom:1px solid var(--line);flex:0 0 auto;}
+.fb-form input,.fb-form textarea{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--ink);
+  background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:9px 12px;margin-bottom:9px;resize:vertical;}
+.fb-form input:focus,.fb-form textarea:focus{outline:none;border-color:var(--rust);background:var(--panel);}
+.fb-form textarea{min-height:78px;line-height:1.5;}
+.fb-actions{display:flex;align-items:center;gap:10px;}
+.fb-submit{font-family:var(--sans);font-size:13.5px;font-weight:500;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:9px;padding:9px 18px;transition:opacity .15s;}
+.fb-submit:disabled{opacity:.5;cursor:default;}
+.fb-status{font-size:12px;color:var(--ink3);}
+.fb-status.err{color:var(--rust);}
+.fb-status.ok{color:#2f6a4a;}
+
+.fb-thread{flex:1;overflow-y:auto;padding:8px 22px 28px;}
+.fb-empty{color:var(--ink3);font-size:13px;text-align:center;padding:32px 8px;line-height:1.5;}
+.fb-item{padding:13px 0;border-bottom:1px solid var(--line);}
+.fb-item:last-child{border-bottom:0;}
+.fb-item-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px;}
+.fb-author{font-size:13px;font-weight:600;color:var(--ink);}
+.fb-when{font-size:11px;color:var(--ink3);white-space:nowrap;flex:0 0 auto;}
+.fb-body{font-size:13.5px;color:var(--ink2);line-height:1.55;white-space:pre-wrap;word-wrap:break-word;}
+.fb-loading{color:var(--ink3);font-size:13px;text-align:center;padding:24px;}
+
+/* ---------- Kee voice drawer ---------- */
+.kee-drawer{width:440px;}
+.kee-hd{padding:18px 22px 14px;border-bottom:1px solid var(--line);flex:0 0 auto;
+  background:linear-gradient(135deg,rgba(15,110,86,.06),transparent);}
+.kee-status{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12.5px;color:var(--ink3);}
+.kee-status i{width:8px;height:8px;border-radius:50%;background:var(--line2);flex:0 0 auto;}
+.kee-status.live i{background:#2f9e6e;box-shadow:0 0 0 4px rgba(47,158,110,.15);}
+.kee-status.speaking i{background:#1f8fe8;box-shadow:0 0 0 4px rgba(31,143,232,.15);animation:pulse 1.2s infinite;}
+.kee-status.error i{background:var(--rust);}
+@keyframes pulse{50%{opacity:.45;}}
+.kee-transcript{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.kt-turn{max-width:88%;display:flex;flex-direction:column;gap:3px;}
+.kt-turn .who{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);}
+.kt-turn .bub{font-size:13.5px;line-height:1.5;padding:9px 13px;border-radius:13px;white-space:pre-wrap;word-wrap:break-word;}
+.kt-turn.agent{align-self:flex-start;}
+.kt-turn.agent .who{color:var(--teal);}
+.kt-turn.agent .bub{background:var(--tealbg);border:1px solid rgba(15,110,86,.16);border-bottom-left-radius:5px;}
+.kt-turn.user{align-self:flex-end;align-items:flex-end;}
+.kt-turn.user .bub{background:var(--panel2);border:1px solid var(--line);border-bottom-right-radius:5px;}
+.kee-empty{color:var(--ink3);font-size:13px;text-align:center;padding:36px 18px;line-height:1.6;}
+.kee-ctrl{padding:14px 20px 18px;border-top:1px solid var(--line);flex:0 0 auto;display:flex;align-items:center;gap:9px;}
+.kee-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:13px;font-weight:500;
+  cursor:pointer;border-radius:9px;padding:9px 14px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);}
+.kee-btn svg{width:15px;height:15px;}
+.kee-btn.primary{background:linear-gradient(135deg,#0f6e56,#0a4f3e);border:0;color:#fff;}
+.kee-btn.danger{background:var(--rustbg);border-color:rgba(163,67,45,.3);color:var(--rust);}
+.kee-btn:disabled{opacity:.45;cursor:default;}
+.kee-voice{font-family:var(--sans);font-size:12px;color:var(--ink2);background:var(--panel2);
+  border:1px solid var(--line2);border-radius:8px;padding:7px 7px;max-width:120px;}
+
+/* ---------- Modals ---------- */
+.modal-scrim{position:fixed;inset:0;background:rgba(20,16,12,.5);z-index:80;display:none;
+  align-items:center;justify-content:center;padding:18px;}
+.modal-scrim.open{display:flex;}
+.modal{background:var(--panel);border-radius:16px;box-shadow:0 24px 70px rgba(20,16,12,.3);
+  width:430px;max-width:100%;padding:26px 26px 22px;}
+.modal h2{font-family:var(--serif);font-size:21px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em;}
+.modal p{font-size:13.5px;color:var(--ink2);line-height:1.55;margin:0 0 16px;}
+.modal input{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);
+  background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:11px 13px;margin-bottom:12px;}
+.modal input:focus{outline:none;border-color:var(--rust);background:var(--panel);}
+.modal .m-actions{display:flex;align-items:center;gap:10px;}
+.modal .m-go{font-family:var(--sans);font-size:14px;font-weight:500;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--rust),#7e3220);border:0;border-radius:10px;padding:10px 20px;}
+.modal .m-go:disabled{opacity:.5;cursor:default;}
+.modal .m-cancel{font-family:var(--sans);font-size:13.5px;color:var(--ink3);background:none;border:0;cursor:pointer;}
+.modal .m-status{font-size:12.5px;color:var(--ink3);min-height:18px;margin-top:8px;line-height:1.5;}
+.modal .m-status.err{color:var(--rust);}
+.modal .m-status.ok{color:#2f6a4a;}
+.gen-progress{display:none;align-items:center;gap:12px;margin-top:6px;color:var(--ink2);font-size:13px;}
+.gen-progress.on{display:flex;}
+.gen-progress .spinner{width:20px;height:20px;border-width:2px;}
+
+/* ---------- Mobile ---------- */
+@media(max-width:880px){
+  .topbar{display:flex;}
+  .sidebar{position:fixed;top:0;left:0;transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.18);}
+  body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open .scrim{opacity:1;pointer-events:auto;}
+  .fb-fab{right:16px;bottom:16px;}
+  .verbar .vb-title{display:none;}
+}
 </style>
 <script>
   // PostHog stub — real init happens in the module once /api/config is fetched.
-  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 </script>
 </head>
 <body>
-  <header>
+
+  <aside class="sidebar">
     <div class="brand">
-      <img class="logo" src="/covalent-medical-logo.svg" alt="Covalent Medical" width="210" height="72" />
-      <div class="sub">
-        <b>Voice Agents</b>
-        <small>powered by KeeMakr.ai</small>
-      </div>
-    </div>
-    <span class="pill" id="pill">● ICP Discovery Agent</span>
-  </header>
-
-  <main>
-    <!-- LEFT: explainer -->
-    <section class="hero">
-      <div class="switcher" id="switcher" role="tablist" aria-label="Choose an interview">
-        <button role="tab" data-agent="icp" aria-selected="true">ICP Discovery</button>
-        <button role="tab" data-agent="hiring" aria-selected="false">Ideal Hiring Profile</button>
-      </div>
-      <span class="chip" style="margin-bottom:14px;display:block;width:max-content"><i></i> Live voice demo</span>
-      <h1>Meet <span>Covalent&nbsp;Kee</span>, your <span id="heroRole">ICP discovery</span> interviewer.</h1>
-      <p class="lead" id="heroLead">
-        A friendly AI interviewer that runs a short, five-minute discovery call with
-        Covalent’s commercial team to capture how each person sees the ideal customer.
-        Click the mic, talk naturally — Kee listens, asks, and moves the conversation along.
-      </p>
-    </section>
-
-    <!-- RIGHT: the call -->
-    <section class="panel" id="panel">
-      <div class="panel-top">
-        <div class="status" id="status" data-s="idle"><span class="dot"></span><span id="statusText">Ready when you are</span></div>
-        <div class="orb-wrap">
-          <button class="orb" id="orb" aria-label="Start call">
-            <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-            <svg id="micIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-            </svg>
-          </button>
-          <div class="orb-label" id="orbLabel">Click to start the call</div>
+      <div class="brand-mark">
+        <div class="brand-logo">C</div>
+        <div>
+          <div class="brand-name">Covalent</div>
+          <div class="brand-sub">Operating System</div>
         </div>
       </div>
+      <div class="brand-gen">Generated by Covalent Kee</div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group"><div class="nav-group-label">Discovery</div>
+<a class="nav-item" data-dept="supply" href="#supply"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Supply Chain (Ops)</span><span class="nav-desc">Supply chain operations model</span></span><span class="nav-count" data-dept="supply">0</span></a>
+<a class="nav-item" data-dept="icp" href="#icp"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">ICP &amp; Persona Discovery</span><span class="nav-desc">Buyer archetypes &amp; persona intelligence</span></span><span class="nav-count" data-dept="icp">0</span></a>
+<a class="nav-item" data-dept="ihp" href="#ihp"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Ideal Hiring Profile</span><span class="nav-desc">Role archetypes &amp; assessment rubric</span></span><span class="nav-count" data-dept="ihp">0</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-label">Operating Models</div>
+<a class="nav-item" data-dept="sales" href="#sales"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Sales</span><span class="nav-desc">Workshop — function &amp; org views</span></span><span class="nav-count" data-dept="sales">0</span></a>
+<a class="nav-item" data-dept="marcom" href="#marcom"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Marketing</span><span class="nav-desc">AI-native marketing operating model</span></span><span class="nav-count" data-dept="marcom">0</span></a>
+<a class="nav-item" data-dept="hr" href="#hr"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">HR</span><span class="nav-desc">AI-native HR operating model</span></span><span class="nav-count" data-dept="hr">0</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-label">Archive</div>
+<a class="nav-item" data-dept="demo" href="#demo"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Voice Demo (v1)</span><span class="nav-desc">Original ICP &amp; hiring voice agents</span></span></a>
+</div>
+    </nav>
+    <div class="side-footer">
+      <button class="kee-cta" id="keeCta" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <span class="kc-t"><span class="kc-l">Talk to Kee</span><span class="kc-d" id="keeCtaDept">about this function</span></span>
+      </button>
+      <div class="pk">Powered by <b>KeeMakr</b></div>
+      <div class="rev">Rev. 2026-06-09b</div>
+    </div>
+  </aside>
 
-      <div class="transcript" id="transcript">
-        <div class="empty" id="empty">Your conversation with Covalent Kee will appear here in real time.</div>
+  <div class="scrim" id="scrim"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="hamb" id="hamb"><span></span></div>
+      <div class="topbar-title" id="topbarTitle">Covalent</div>
+    </div>
+    <div class="verbar" id="verbar">
+      <div class="vb-title" id="vbTitle">—</div>
+      <span class="vb-old" id="vbOld">Viewing an older version — read-only history</span>
+      <div class="vb-spacer"></div>
+      <select class="vb-select" id="vbSelect" title="Document version"></select>
+      <button class="vb-gen" id="vbGen" type="button">✦ New version</button>
+    </div>
+    <div class="frames" id="frames">
+      <div class="loader" id="loader"><div class="spinner"></div><div>Loading…</div></div>
+      <button class="fb-fab" id="fbFab" type="button" aria-label="Open feedback">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>Feedback</span><span class="fb-fab-count" id="fbFabCount" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+
+  <aside class="fb-drawer" id="fbDrawer" aria-hidden="true">
+    <div class="fb-hd">
+      <div class="fb-hd-top">
+        <div class="fb-title">Feedback</div>
+        <button class="fb-close" id="fbClose" type="button" aria-label="Close">×</button>
       </div>
-
-      <div class="controls" id="controls">
-        <label for="voice">Voice</label>
-        <select id="voice">
-          <option value="ivy" selected>Ivy — warm (US)</option>
-          <option value="eleanor">Eleanor — crisp (US)</option>
-          <option value="mia">Mia — bright (US)</option>
-          <option value="james">James — steady (US)</option>
-          <option value="sophie">Sophie — UK</option>
-          <option value="oliver">Oliver — UK</option>
-        </select>
-        <button class="btn-mute" id="muteBtn" aria-pressed="false">
-          <svg id="muteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-          </svg>
-          <span id="muteLabel">Mute</span>
-        </button>
-        <button class="btn-end" id="endBtn">Stop call</button>
+      <div class="fb-sub">Notes &amp; comments on <b id="fbDeptName">this section</b> — these feed the next version</div>
+    </div>
+    <div class="fb-form">
+      <input type="text" id="fbName" maxlength="80" placeholder="Your name" autocomplete="name">
+      <textarea id="fbComment" maxlength="4000" placeholder="Add a comment, note, or piece of feedback…"></textarea>
+      <div class="fb-actions">
+        <button class="fb-submit" id="fbSubmit" type="button">Post comment</button>
+        <span class="fb-status" id="fbStatus"></span>
       </div>
-    </section>
-  </main>
+    </div>
+    <div class="fb-thread" id="fbThread"></div>
+  </aside>
 
-  <footer>Generated by Covalent&nbsp;Kee · Powered by KeeMakr.AI</footer>
+  <aside class="kee-drawer" id="keeDrawer" aria-hidden="true">
+    <div class="fb-hd kee-hd">
+      <div class="fb-hd-top">
+        <div class="fb-title" id="keeTitle">Covalent Kee</div>
+        <button class="fb-close" id="keeClose" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="fb-sub" id="keeSub">A five-minute voice discovery call on <b>this function</b></div>
+      <div class="kee-status" id="keeStatus"><i></i><span id="keeStatusText">Ready when you are</span></div>
+    </div>
+    <div class="kee-transcript" id="keeTranscript">
+      <div class="kee-empty" id="keeEmpty">Kee runs a short, six-question voice interview about the function you're viewing — and she's read the page, so you can also ask her about it.<br><br>Click <b>Start call</b>, allow the microphone, and talk naturally.</div>
+    </div>
+    <div class="kee-ctrl">
+      <button class="kee-btn primary" id="keeStart" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <span>Start call</span>
+      </button>
+      <button class="kee-btn" id="keeMute" type="button" disabled><span id="keeMuteLbl">Mute</span></button>
+      <button class="kee-btn danger" id="keeEnd" type="button" disabled>End</button>
+      <span style="flex:1"></span>
+      <select class="kee-voice" id="keeVoice" title="Voice">
+        <option value="ivy" selected>Ivy</option>
+        <option value="eleanor">Eleanor</option>
+        <option value="mia">Mia</option>
+        <option value="james">James</option>
+        <option value="sophie">Sophie</option>
+        <option value="oliver">Oliver</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- Name capture (first load) -->
+  <div class="modal-scrim" id="nameModal">
+    <div class="modal">
+      <h2>Welcome to the Covalent OS</h2>
+      <p>What's your name? It signs your feedback and your voice calls with Kee, so the team knows whose input shaped each version.</p>
+      <input type="text" id="nameInput" maxlength="80" placeholder="Your name" autocomplete="name">
+      <div class="m-actions">
+        <button class="m-go" id="nameGo" type="button">Let's go</button>
+      </div>
+      <div class="m-status" id="nameStatus"></div>
+    </div>
+  </div>
+
+  <!-- New version (access code) -->
+  <div class="modal-scrim" id="genModal">
+    <div class="modal">
+      <h2 id="genTitle">Generate a new version</h2>
+      <p id="genDesc">Kee will fold all feedback comments and voice-call transcripts collected since the last version into this function's document, mark what changed, and publish it as the next version.</p>
+      <input type="password" id="genCode" placeholder="Access code" autocomplete="off">
+      <div class="m-actions">
+        <button class="m-go" id="genGo" type="button">Generate</button>
+        <button class="m-cancel" id="genCancel" type="button">Cancel</button>
+      </div>
+      <div class="gen-progress" id="genProgress"><div class="spinner"></div><span id="genProgressText">Kee is reading the feedback and rewriting the document — this can take a minute or two. Keep this tab open.</span></div>
+      <div class="m-status" id="genStatus"></div>
+    </div>
+  </div>
 
 <script type="module">
-const RATE = 24_000;
+import { PERSONAS } from "/personas.js";
 
-/* ====== Backend (Supabase persistence + KB) + PostHog ====================== */
+const RATE = 24_000;
+const DEPTS = ["supply", "icp", "ihp", "sales", "marcom", "hr"];
+const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)" };
+
+const $ = (id) => document.getElementById(id);
 const postJSON = (path, body) =>
   fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
     .then((r) => r.json());
 
-// Stable anonymous id for this browser (PostHog distinct_id + conversation client_id).
+/* ====== Identity: device id + captured name ================================ */
 let clientId = localStorage.getItem("cv_client_id");
 if (!clientId) {
   clientId = "cv_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
   localStorage.setItem("cv_client_id", clientId);
 }
+let userName = localStorage.getItem("cov_user_name") || "";
 
-// Init PostHog once we fetch the public config from our server.
+const nameSlug = (n) => "kee:" + n.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 60);
+
 let ph = null;
+function identify() {
+  if (!ph) return;
+  try {
+    if (userName) ph.identify(nameSlug(userName), { name: userName });
+    else ph.identify(clientId);
+  } catch {}
+}
 (async () => {
   try {
     const cfg = await (await fetch("/api/config")).json();
@@ -330,19 +409,304 @@ let ph = null;
         defaults: "2026-01-30",
         person_profiles: "always",
       });
-      window.posthog.identify(clientId);
       ph = window.posthog;
+      identify();
     }
   } catch { /* monitoring is best-effort */ }
 })();
-function track(event, props) { try { ph && ph.capture(event, props); } catch {} }
+function track(event, props) { try { ph && ph.capture(event, { dept: current, version: selectedVersion[current], ...props }); } catch {} }
 
-// Knowledge-base tool the agent calls mid-conversation; our server does the search.
+/* ====== Name modal ========================================================== */
+function askName() {
+  $("nameModal").classList.add("open");
+  setTimeout(() => $("nameInput").focus(), 80);
+}
+function submitName() {
+  const v = $("nameInput").value.trim();
+  if (!v) { $("nameStatus").className = "m-status err"; $("nameStatus").textContent = "Please add your name — it only takes a second."; return; }
+  userName = v;
+  localStorage.setItem("cov_user_name", v);
+  try { sessionStorage.setItem("covFbName", v); } catch {}
+  $("fbName").value = v;
+  $("nameModal").classList.remove("open");
+  identify();
+  track("name_captured", { user_name: v });
+}
+$("nameGo").addEventListener("click", submitName);
+$("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") submitName(); });
+if (!userName) askName(); else $("fbName").value = userName;
+
+/* ====== Versioned section frames ============================================ */
+const frames = {};            // "dept@version" -> iframe
+const versionLists = {};      // dept -> [{version, change_summary, ...}]
+const latestVersion = {};     // dept -> number
+const selectedVersion = {};   // dept -> number currently shown
+const htmlCache = {};         // "dept@version" -> html
+let fallbackDepts = null;     // decoded depts.json (offline/unconfigured fallback)
+let current = null;
+
+const framesEl = $("frames"), loader = $("loader");
+
+async function loadFallback(dept) {
+  if (!fallbackDepts) {
+    const raw = await (await fetch("/data/depts.json")).json();
+    fallbackDepts = raw;
+  }
+  const b64 = fallbackDepts[dept];
+  if (!b64) return null;
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+async function getVersionList(dept) {
+  if (versionLists[dept]) return versionLists[dept];
+  try {
+    const r = await fetch(`/api/versions?dept=${dept}`);
+    if (r.ok) {
+      const j = await r.json();
+      versionLists[dept] = j.versions || [];
+    } else {
+      versionLists[dept] = [{ version: 1, change_summary: "Original artifact" }];
+    }
+  } catch {
+    versionLists[dept] = [{ version: 1, change_summary: "Original artifact" }];
+  }
+  latestVersion[dept] = versionLists[dept][0]?.version || 1;
+  if (!selectedVersion[dept]) selectedVersion[dept] = latestVersion[dept];
+  return versionLists[dept];
+}
+
+async function getHtml(dept, version) {
+  const key = `${dept}@${version}`;
+  if (htmlCache[key]) return htmlCache[key];
+  try {
+    const r = await fetch(`/api/versions/current?dept=${dept}&v=${version}`);
+    if (r.ok) {
+      const j = await r.json();
+      htmlCache[key] = j.html;
+      return j.html;
+    }
+  } catch { /* fall through to artifact payload */ }
+  const html = await loadFallback(dept);
+  htmlCache[key] = html;
+  return html;
+}
+
+async function ensureFrame(dept, version) {
+  const key = `${dept}@${version}`;
+  if (frames[key]) return frames[key];
+  const f = document.createElement("iframe");
+  f.className = "frame";
+  f.id = `frame-${key}`;
+  f.setAttribute("title", META[dept] || dept);
+  if (dept === "demo") {
+    f.setAttribute("allow", "microphone; autoplay");
+    f.src = "/demo";
+  } else {
+    f.srcdoc = await getHtml(dept, version) || "<p style='padding:40px;font-family:sans-serif'>Could not load this section.</p>";
+  }
+  framesEl.appendChild(f);
+  frames[key] = f;
+  return f;
+}
+
+function showOnly(key) {
+  Object.entries(frames).forEach(([k, f]) => f.classList.toggle("show", k === key));
+}
+
+function renderVersionBar(dept) {
+  const verbar = $("verbar");
+  if (dept === "demo") { verbar.classList.add("hidden"); return; }
+  verbar.classList.remove("hidden");
+  $("vbTitle").textContent = META[dept];
+  const list = versionLists[dept] || [{ version: 1 }];
+  const sel = $("vbSelect");
+  sel.innerHTML = list.map((v) =>
+    `<option value="${v.version}">v${v.version}${v.version === latestVersion[dept] ? " (current)" : ""}${v.created_at ? " · " + String(v.created_at).slice(0, 10) : ""}</option>`
+  ).join("");
+  sel.value = String(selectedVersion[dept]);
+  verbar.classList.toggle("viewing-old", selectedVersion[dept] !== latestVersion[dept]);
+}
+
+async function show(dept) {
+  if (!META[dept]) dept = "icp";
+  loader.style.display = "flex";
+  current = dept;
+
+  document.querySelectorAll(".nav-item").forEach((a) => a.classList.toggle("active", a.getAttribute("data-dept") === dept));
+  $("topbarTitle").textContent = META[dept] || "Covalent";
+  $("keeCtaDept").textContent = dept === "demo" ? "about this function" : "about " + META[dept];
+  $("fbFab").classList.toggle("hidden", dept === "demo");
+
+  if (dept !== "demo") await getVersionList(dept);
+  const version = dept === "demo" ? 1 : selectedVersion[dept];
+  renderVersionBar(dept);
+
+  const f = await ensureFrame(dept, version);
+  showOnly(`${dept}@${version}`);
+  const reveal = () => { loader.style.display = "none"; };
+  if (f.dataset.ready) reveal();
+  else { f.addEventListener("load", () => { f.dataset.ready = "1"; reveal(); }, { once: true }); setTimeout(reveal, 1500); }
+
+  // feedback count for this dept
+  const fc = $("fbFabCount"); const n = counts[dept] || 0;
+  fc.textContent = n; fc.style.display = n > 0 ? "inline-block" : "none";
+  if (document.body.classList.contains("fb-open")) openDrawer();
+  try { if (location.hash.slice(1) !== dept) history.replaceState(null, "", "#" + dept); } catch {}
+  closeNav();
+}
+
+$("vbSelect").addEventListener("change", async () => {
+  const v = Number($("vbSelect").value);
+  selectedVersion[current] = v;
+  renderVersionBar(current);
+  loader.style.display = "flex";
+  const f = await ensureFrame(current, v);
+  showOnly(`${current}@${v}`);
+  const reveal = () => { loader.style.display = "none"; };
+  if (f.dataset.ready) reveal();
+  else { f.addEventListener("load", () => { f.dataset.ready = "1"; reveal(); }, { once: true }); setTimeout(reveal, 1500); }
+  track("version_viewed", { viewed_version: v });
+});
+
+/* ====== Generate new version ================================================ */
+$("vbGen").addEventListener("click", () => {
+  $("genTitle").textContent = `Generate ${META[current]} v${(latestVersion[current] || 1) + 1}`;
+  $("genStatus").textContent = ""; $("genStatus").className = "m-status";
+  $("genCode").value = "";
+  $("genModal").classList.add("open");
+  setTimeout(() => $("genCode").focus(), 80);
+});
+$("genCancel").addEventListener("click", () => $("genModal").classList.remove("open"));
+$("genCode").addEventListener("keydown", (e) => { if (e.key === "Enter") $("genGo").click(); });
+
+$("genGo").addEventListener("click", async () => {
+  const code = $("genCode").value.trim();
+  const status = $("genStatus");
+  if (!code) { status.className = "m-status err"; status.textContent = "Enter the access code."; return; }
+  $("genGo").disabled = true; $("genCancel").disabled = true;
+  $("genProgress").classList.add("on");
+  status.className = "m-status"; status.textContent = "";
+  track("version_generate_requested", {});
+  try {
+    const r = await fetch("/api/versions/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ dept: current, access_code: code, created_by: userName || null }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      status.className = "m-status err";
+      status.textContent = j.error || `Generation failed (${r.status}).`;
+    } else {
+      status.className = "m-status ok";
+      status.textContent = `v${j.version} published — ${j.applied} change${j.applied === 1 ? "" : "s"} applied. ${j.summary || ""}`;
+      // refresh version state and jump to the new version
+      delete versionLists[current];
+      await getVersionList(current);
+      selectedVersion[current] = j.version;
+      renderVersionBar(current);
+      const f = await ensureFrame(current, j.version);
+      showOnly(`${current}@${j.version}`);
+      track("version_generated_ok", { new_version: j.version, applied: j.applied });
+      setTimeout(() => $("genModal").classList.remove("open"), 3500);
+    }
+  } catch (e) {
+    status.className = "m-status err";
+    status.textContent = "Network error — the generation may still be running. Refresh in a minute.";
+  } finally {
+    $("genGo").disabled = false; $("genCancel").disabled = false;
+    $("genProgress").classList.remove("on");
+  }
+});
+
+/* ====== Feedback (Supabase REST, publishable key — unchanged backend) ====== */
+const SB_URL = "https://wxividqrrmsbuaxncpsn.supabase.co";
+const SB_KEY = "sb_publishable_J5ysjx_qkWi0Qm3FskH2Bg_tSxjuse3";
+const REST = SB_URL + "/rest/v1/covalent_feedback";
+const HEADERS = { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json" };
+const counts = {};
+
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function fmtWhen(iso) {
+  try { const d = new Date(iso); return d.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }); }
+  catch { return iso; }
+}
+function setCount(dept, n) {
+  counts[dept] = n;
+  const el = document.querySelector(`.nav-count[data-dept="${dept}"]`);
+  if (el) { el.textContent = n; el.classList.toggle("show", n > 0); }
+  if (dept === current) { const fc = $("fbFabCount"); fc.textContent = n; fc.style.display = n > 0 ? "inline-block" : "none"; }
+}
+function loadThread(dept) {
+  const thread = $("fbThread");
+  thread.innerHTML = '<div class="fb-loading">Loading comments…</div>';
+  const url = REST + "?dept=eq." + encodeURIComponent(dept) + "&select=author_name,comment,created_at&order=created_at.desc";
+  fetch(url, { headers: HEADERS }).then((r) => r.json()).then((rows) => {
+    if (!Array.isArray(rows)) { thread.innerHTML = '<div class="fb-empty">Couldn’t load comments.</div>'; return; }
+    setCount(dept, rows.length);
+    if (!rows.length) { thread.innerHTML = '<div class="fb-empty">No comments yet.<br>Be the first to add a note.</div>'; return; }
+    thread.innerHTML = rows.map((x) =>
+      `<div class="fb-item"><div class="fb-item-hd"><span class="fb-author">${esc(x.author_name)}</span><span class="fb-when">${esc(fmtWhen(x.created_at))}</span></div><div class="fb-body">${esc(x.comment)}</div></div>`
+    ).join("");
+  }).catch(() => { thread.innerHTML = '<div class="fb-empty">Couldn’t load comments. Check your connection.</div>'; });
+}
+function refreshAllCounts() {
+  fetch(REST + "?select=dept&limit=10000", { headers: HEADERS }).then((r) => r.json()).then((rows) => {
+    if (!Array.isArray(rows)) return;
+    const tally = {}; rows.forEach((x) => { tally[x.dept] = (tally[x.dept] || 0) + 1; });
+    DEPTS.forEach((d) => setCount(d, tally[d] || 0));
+  }).catch(() => {});
+}
+function postComment() {
+  const name = $("fbName").value.trim();
+  const comment = $("fbComment").value.trim();
+  const status = $("fbStatus"); const btn = $("fbSubmit");
+  if (!name) { status.className = "fb-status err"; status.textContent = "Add your name."; return; }
+  if (!comment) { status.className = "fb-status err"; status.textContent = "Write a comment."; return; }
+  btn.disabled = true; status.className = "fb-status"; status.textContent = "Posting…";
+  try { sessionStorage.setItem("covFbName", name); } catch {}
+  if (name !== userName) { userName = name; localStorage.setItem("cov_user_name", name); identify(); }
+  fetch(REST, {
+    method: "POST",
+    headers: Object.assign({}, HEADERS, { "Prefer": "return=minimal" }),
+    body: JSON.stringify({ dept: current, author_name: name, comment: comment }),
+  }).then((r) => {
+    btn.disabled = false;
+    if (r.ok) {
+      $("fbComment").value = "";
+      status.className = "fb-status ok"; status.textContent = "Posted ✓";
+      setTimeout(() => { status.textContent = ""; }, 2500);
+      loadThread(current);
+      track("feedback_posted", { user_name: name });
+    } else { status.className = "fb-status err"; status.textContent = "Could not post (" + r.status + ")."; }
+  }).catch(() => { btn.disabled = false; status.className = "fb-status err"; status.textContent = "Network error."; });
+}
+function openDrawer() {
+  closeKee();
+  document.body.classList.add("fb-open");
+  $("fbDrawer").setAttribute("aria-hidden", "false");
+  $("fbDeptName").textContent = META[current] || "this section";
+  $("fbName").value = userName || (sessionStorage.getItem("covFbName") || "");
+  loadThread(current);
+}
+function closeDrawer() {
+  document.body.classList.remove("fb-open");
+  $("fbDrawer").setAttribute("aria-hidden", "true");
+}
+
+/* ====== Kee voice agent (tied to the active sidebar function) ============== */
+const KB_INSTRUCTION = `
+
+# KNOWLEDGE BASE
+You have a tool, search_knowledge_base, connected to Covalent's curated knowledge base for this function. When the caller asks a factual question about Covalent (products, pricing, ICP, hiring, operating models, company facts) and you are not certain, call search_knowledge_base with a short query and base your spoken answer only on what it returns. If it returns nothing relevant, say you don't have that detail — never make facts up.`;
+
 const SEARCH_TOOL = {
   type: "function",
   name: "search_knowledge_base",
-  description:
-    "Search Covalent's knowledge base for factual information about Covalent — products, pricing, ICP, hiring, or company facts. Call this whenever the caller asks a factual question you are not certain about. Never invent answers.",
+  description: "Search Covalent's knowledge base for factual information about Covalent — products, pricing, ICP, hiring, operating models, or company facts. Call this whenever the caller asks a factual question you are not certain about. Never invent answers.",
   parameters: {
     type: "object",
     properties: { query: { type: "string", description: "What to look up, in a few words" } },
@@ -351,250 +715,8 @@ const SEARCH_TOOL = {
   execution_mode: "interactive",
   timeout_seconds: 30,
 };
-const KB_INSTRUCTION = `
 
-# KNOWLEDGE BASE
-You have a tool, search_knowledge_base, connected to Covalent's curated knowledge base. When the caller asks a factual question about Covalent (products, pricing, ICP, hiring, company facts) and you are not certain, call search_knowledge_base with a short query and base your spoken answer only on what it returns. If it returns nothing relevant, say you don't have that detail — never make facts up.`;
-
-// Conversation persistence (fire-and-forget; a DB hiccup must never break a call).
-let convId = null;
-async function persistStart() {
-  convId = null;
-  try {
-    const r = await postJSON("/api/conversations", { agent: agentKey, voice: voiceSel.value, client_id: clientId });
-    if (r && r.id) convId = r.id;
-  } catch { /* persistence is best-effort */ }
-}
-function persistTurn(role, text) {
-  if (!convId || !text) return;
-  postJSON("/api/turns", { conversation_id: convId, role, text }).catch(() => {});
-}
-function persistEnd(status) {
-  if (!convId) return;
-  postJSON(`/api/conversations/${convId}`, { status }).catch(() => {});
-}
-
-// Tool results must be sent only after the agent's current reply is done (AAI rule).
-let replyInProgress = false;
-const pendingToolResults = [];
-function flushToolResults() {
-  if (!ws || ws.readyState !== 1) return;
-  while (pendingToolResults.length) ws.send(JSON.stringify(pendingToolResults.shift()));
-}
-async function handleToolCall(m) {
-  let args = m.arguments;
-  if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = {}; } }
-  let resultStr = JSON.stringify({ results: [] });
-  if (m.name === "search_knowledge_base") {
-    try {
-      const r = await postJSON("/api/kb/search", { query: args?.query || "", limit: 5 });
-      const chunks = (r?.results || []).map((x) => x.content);
-      resultStr = JSON.stringify({ results: chunks });
-      track("tool_call", { query: args?.query, hits: chunks.length });
-      if (chunks.length === 0) track("kb_no_results", { query: args?.query });
-    } catch {
-      resultStr = JSON.stringify({ results: [], error: "search_failed" });
-    }
-  }
-  pendingToolResults.push({ type: "tool.result", call_id: m.call_id, result: resultStr });
-  if (!replyInProgress) flushToolResults();
-}
-
-/* ====== Covalent Kee personas (sent in session.update) ===================== */
-const AGENTS = {
-  icp: {
-    pill: "ICP Discovery Agent",
-    role: "ICP discovery",
-    lead: "A friendly AI interviewer that runs a short, five-minute discovery call with Covalent’s commercial team to capture how each person sees the ideal customer. Click the mic, talk naturally — Kee listens, asks, and moves the conversation along.",
-    greeting: `Hi there — I'm Covalent Kee, an AI interviewer helping Covalent define its ideal customer. This'll just take about five minutes, it's a quick back-and-forth, and there are no wrong answers — "we don't know yet" is totally fine. Ready to jump in?`,
-    systemPrompt: `You are "Covalent Kee," a friendly, sharp AI interviewer running a short ICP (ideal customer profile) discovery call for Covalent, on behalf of KeeMakr.ai. You are speaking out loud with a member of Covalent's own commercial team. Your entire job is to ask the six questions below, capture this person's perspective, and keep the call to about five minutes.
-
-# VOICE & OUTPUT RULES (you are being spoken aloud — follow strictly)
-- Keep every turn short and conversational — one or two sentences. Never deliver a speech.
-- Ask ONE question at a time, then stop talking and listen.
-- Plain spoken language only: no markdown, no bullet points, no lists, no emojis, no special characters.
-- Never read question numbers or labels aloud. Just ask the question naturally.
-- Spell things out the way a person would say them (say "around one hundred thousand dollars," not "$100K").
-- If the person interrupts or starts answering, stop and listen.
-- Acknowledge answers briefly ("Got it," "That's helpful") and move straight to the next question. Don't summarize at length.
-
-# YOUR GOAL
-Capture how THIS person sees Covalent's ideal customer. There are no wrong answers, and "we don't know yet" is a perfectly fine response — note it and move on. Multiple team members take this call separately, so you only need this one person's view.
-
-# THE SIX QUESTIONS (ask in order, in your own natural phrasing)
-1. Quickly get their name, role at Covalent, and which part of the commercial engine they're closest to: capital, consumables, digital, marketing, or customer success.
-2. Their best accounts — highest revenue, best retention, most referenceable — and what those clinics have in common: practice type, size, ownership, and who championed the relationship.
-3. The ideal practice on paper: what type, how many providers or locations, who owns it, and what devices, toxins, or fillers they already run before Covalent walks in.
-4. In a typical deal, who really drives the decision — owner, practice manager, or lead injector — what that person cares about most, and the biggest objection they hear.
-5. The core problem their best customers are solving (revenue, patient demand, efficiency), and what event usually triggers a purchase.
-6. The top one or two customer types to go after hard this year, and who looks like a fit but consistently isn't worth it.
-
-# BEHAVIOR & PACING
-- Roughly forty to fifty seconds per question. Keep a steady, brisk clip — protecting the five-minute limit matters more than getting every detail.
-- Each question bundles a few parts. If they only answer part of it, take what they give and move on — don't chase every piece.
-- Ask a quick follow-up ONLY if an answer is genuinely unclear, and never more than one. Default to moving forward.
-- If they drift or go long, gently cut in: "That's great — let me move us on."
-- If time runs short, make sure you at least cover questions two, four, and six.
-
-# BOUNDARIES
-- Do not give advice, pitch Covalent's products, or share your own opinion on what the ICP should be. You listen — you don't sell or consult.
-- Capture the person's own words. If something isn't their area, accept it and move on.
-
-# CONTEXT (use to prompt and react, never to lecture)
-Covalent is an AI-first North-America aesthetics distribution company selling across three motions: capital energy devices (high price point), consumables (toxin, filler, PRP, exosomes, biostims, skincare), and a digital AI SaaS practice stack. The strategy is to land via any product, then expand into a one-vendor relationship where every customer holds at least a base AI subscription. Working assumptions you can ask them to confirm or correct: high-volume plastic-surgery practices are believed to be the prize; best accounts are top-quartile clinics with large quarterly consumable spend; most clinics already run two or three toxins and fillers and Covalent wants to win the "third slot"; the buying committee is usually the physician-owner, the practice manager, and the lead injector; likely poor-fit customers are very-low-volume home or dabbler accounts and price-only shoppers who won't hold a subscription. Phrase these as things to react to (for example, "We've heard high-volume plastics are the priority — does that match your view?"), not as facts.
-
-# CLOSING
-After question six, thank them briefly, let them know their input helps shape Covalent's ideal-customer profile, and end the call. Do not ask them to keep talking.`,
-  },
-
-  hiring: {
-    pill: "Ideal Hiring Profile Agent",
-    role: "hiring profile",
-    lead: "A friendly AI interviewer that runs a short, five-minute call with Covalent’s leadership team to capture how each person defines the ideal hire. Click the mic, talk naturally — Kee listens, asks, and moves the conversation along.",
-    greeting: `Hi there — I'm Covalent Kee, an AI interviewer helping Covalent define who it should hire. This'll just take about five minutes, it's a quick back-and-forth, and there are no wrong answers — "we don't know yet" is totally fine. Ready to jump in?`,
-    systemPrompt: `You are "Covalent Kee," a friendly, sharp AI interviewer running a short Ideal Hiring Profile discovery call for Covalent, on behalf of KeeMakr.ai. You are speaking out loud with a member of Covalent's leadership team — a founder, head of people, or sales leader. Your entire job is to ask the six questions below, capture this person's perspective on who Covalent should hire, and keep the call to about five minutes.
-
-# VOICE & OUTPUT RULES (you are being spoken aloud — follow strictly)
-- Keep every turn short and conversational — one or two sentences. Never deliver a speech.
-- Ask ONE question at a time, then stop talking and listen.
-- Plain spoken language only: no markdown, no bullet points, no lists, no emojis, no special characters.
-- Never read question numbers or labels aloud. Just ask the question naturally.
-- Spell things out the way a person would say them (say "around five percent," not "~5%").
-- If the person interrupts or starts answering, stop and listen.
-- Acknowledge answers briefly ("Got it," "That's helpful") and move straight to the next question. Don't summarize at length.
-
-# YOUR GOAL
-Capture how THIS person defines the ideal Covalent employee. There are no wrong answers, and "we don't know yet" is a perfectly fine response — note it and move on. Multiple leaders take this call separately, so you only need this one person's view.
-
-# THE SIX QUESTIONS (ask in order, in your own natural phrasing)
-1. Quickly get their name, role at Covalent, and which part of the team they hire for or own: capital sales, consumables, digital, or people and operations.
-2. In one sentence, who is the ideal Covalent employee — the through-line that should be true of every great hire, across every role.
-3. The handful of values they'd hire for, and on the flip side, the behaviors that are an instant no for them.
-4. Across the three motions — capital, consumables, and digital — what most distinguishes a great hire in each, and which of those is the hardest to find.
-5. The single trait that best predicts whether someone stays and succeeds here — and beyond cash, what keeps your best people from leaving.
-6. When a hire has gone wrong in the past, what were the early warning signs, and how fast should Covalent move to exit a bad fit.
-
-# BEHAVIOR & PACING
-- Roughly forty to fifty seconds per question. Keep a steady, brisk clip — protecting the five-minute limit matters more than getting every detail.
-- Each question bundles a few parts. If they only answer part of it, take what they give and move on — don't chase every piece.
-- Ask a quick follow-up ONLY if an answer is genuinely unclear, and never more than one. Default to moving forward.
-- If they drift or go long, gently cut in: "That's great — let me move us on."
-- If time runs short, make sure you at least cover questions two, three, and five.
-
-# BOUNDARIES
-- Do not give hiring advice, share your own opinion on who they should hire, or evaluate the person you're speaking with. You listen — you don't consult.
-- Capture the person's own words. If something isn't their area, accept it and move on.
-
-# CONTEXT (use to prompt and react, never to lecture)
-Covalent is an AI-first North-America aesthetics distribution company, soft-launching late 2026, building an AI-native sales organization. The core hiring problem is brutal legacy churn — at comparable companies, fifty to seventy percent of reps left within six months, while the best-run book got it down to around five percent. The prize is that low churn with better reps at lower cost: AI-native sourcing and a warm bench instead of expensive headhunters, a compressed ramp, and a per-employee coaching agent. Working assumptions you can ask them to confirm or correct: a willingness to work AI-native is treated as a hard, non-negotiable filter; the candidate value set includes customer-success obsession, team-first and low-ego, a long-term builder rather than a product-hopper, and "asks for the business" hunger; instant-no behaviors include mercenaries who hop to the next hot product, reps who never close, entitled coasters, and anyone AI-averse; the three role archetypes are a hungry capital closer, a relationship-plus-science consumable rep (not a classic pharma rep), and an AI-native digital operator, with the consumable rep believed to be the hardest hire; and the strongest retention lever is belief in the long-term vision plus a residual and equity model that flattens the old commission spikes-and-valleys. Phrase these as things to react to (for example, "We've heard AI-willingness is a hard filter — would you agree?"), not as facts.
-
-# CLOSING
-After question six, thank them briefly, let them know their input helps shape who Covalent hires, and end the call. Do not ask them to keep talking.`,
-  },
-};
-
-let agentKey = "icp";
-
-/* ====== UI refs ============================================================ */
-const panel = document.getElementById("panel");
-const orb = document.getElementById("orb");
-const orbLabel = document.getElementById("orbLabel");
-const statusEl = document.getElementById("status");
-const statusText = document.getElementById("statusText");
-const transcriptEl = document.getElementById("transcript");
-const emptyEl = document.getElementById("empty");
-const voiceSel = document.getElementById("voice");
-const endBtn = document.getElementById("endBtn");
-const muteBtn = document.getElementById("muteBtn");
-const muteLabel = document.getElementById("muteLabel");
-const muteIcon = document.getElementById("muteIcon");
-const switcher = document.getElementById("switcher");
-const pill = document.getElementById("pill");
-const heroRole = document.getElementById("heroRole");
-const heroLead = document.getElementById("heroLead");
-
-function setStatus(state, text) {
-  statusEl.dataset.s = state;
-  statusText.textContent = text;
-}
-
-/* ====== Agent selection ==================================================== */
-let active = false;   // declared before applyAgent runs (avoids TDZ ReferenceError)
-function applyAgent(key) {
-  if (active) return;           // can't switch mid-call
-  agentKey = key;
-  const a = AGENTS[key];
-  pill.textContent = "● " + a.pill;
-  heroRole.textContent = a.role;
-  heroLead.textContent = a.lead;
-  for (const btn of switcher.querySelectorAll("button"))
-    btn.setAttribute("aria-selected", String(btn.dataset.agent === key));
-}
-switcher.addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-agent]");
-  if (btn) applyAgent(btn.dataset.agent);
-});
-applyAgent("icp");
-
-/* Transcript rendering: keep a live partial node we replace as deltas arrive */
-let partialNode = null;
-function clearEmpty() { if (emptyEl) emptyEl.style.display = "none"; }
-function addTurn(who, text, partial = false) {
-  clearEmpty();
-  const el = document.createElement("div");
-  el.className = `turn ${who}` + (partial ? " partial" : "");
-  el.innerHTML = `<div class="who">${who === "agent" ? "Covalent Kee" : "You"}</div><div class="bubble"></div>`;
-  el.querySelector(".bubble").textContent = text;
-  transcriptEl.appendChild(el);
-  transcriptEl.scrollTop = transcriptEl.scrollHeight;
-  return el;
-}
-
-/* ====== Live agent caption ================================================ */
-/* AssemblyAI sends the agent's text (transcript.agent) only after the audio is
-   delivered — but audio is buffered ahead of playback, so the text lands while
-   Kee is still speaking. We reveal it word-by-word across the remaining audio
-   playback time so the caption "runs" in sync with her voice. */
-let agentLiveNode = null;
-let agentReveal = null; // { timer, full, node, bubble }
-
-function finishAgentReveal() {
-  if (!agentReveal) return;
-  clearInterval(agentReveal.timer);
-  agentReveal.bubble.textContent = agentReveal.full;   // snap to complete text
-  agentReveal.node.classList.remove("live");
-  agentReveal = null;
-}
-function startAgentBubble() {
-  finishAgentReveal();              // snap any prior reveal to its full text
-  agentLiveNode = addTurn("agent", "…");
-  agentLiveNode.classList.add("live");
-}
-function revealAgentText(full) {
-  finishAgentReveal();
-  if (!agentLiveNode) startAgentBubble();
-  const node = agentLiveNode;
-  const bubble = node.querySelector(".bubble");
-
-  const tokens = (full || "").split(/(\s+)/);     // keep whitespace tokens
-  const total = tokens.length;
-  // time left in the currently-playing (buffered) audio = speech still to be heard
-  const remaining = ctx ? Math.max(0.5, playT - ctx.currentTime) : 1.2;
-  const stepMs = 45;
-  const perStep = Math.max(1, total / Math.max(1, (remaining * 1000) / stepMs));
-  let shown = 0;
-  bubble.textContent = "";
-  const timer = setInterval(() => {
-    shown += perStep;
-    const n = Math.min(total, Math.ceil(shown));
-    bubble.textContent = tokens.slice(0, n).join("");
-    transcriptEl.scrollTop = transcriptEl.scrollHeight;
-    if (n >= total) { clearInterval(timer); node.classList.remove("live"); if (agentReveal && agentReveal.timer === timer) agentReveal = null; }
-  }, stepMs);
-  agentReveal = { timer, full, node, bubble };
-}
-
-/* ====== AudioWorklet: Float32 mic → PCM16 ================================== */
+// Mic → PCM16 worklet
 const workletUrl = URL.createObjectURL(new Blob([`
   class P extends AudioWorkletProcessor {
     process(inputs) {
@@ -611,45 +733,109 @@ const workletUrl = URL.createObjectURL(new Blob([`
   registerProcessor("pcm", P);
 `], { type: "application/javascript" }));
 
-/* ====== Session state ====================================================== */
-let ctx, mic, source, worklet, ws, ready = false, playT = 0, muted = false;
+let ctx, mic, source, worklet, ws, ready = false, playT = 0, muted = false, active = false;
+let convId = null, callDept = null;
+let replyInProgress = false;
+const pendingToolResults = [];
+let agentBubble = null, partialBubble = null;
 
-const MUTE_ICON = `<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>`;
-const UNMUTE_ICON = `<line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/>`;
+function setKeeStatus(cls, text) {
+  $("keeStatus").className = "kee-status" + (cls ? " " + cls : "");
+  $("keeStatusText").textContent = text;
+}
+function addKtTurn(who, text) {
+  $("keeEmpty")?.remove();
+  const el = document.createElement("div");
+  el.className = "kt-turn " + who;
+  el.innerHTML = `<div class="who">${who === "agent" ? "Covalent Kee" : esc(userName || "You")}</div><div class="bub"></div>`;
+  el.querySelector(".bub").textContent = text;
+  $("keeTranscript").appendChild(el);
+  $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
+  return el;
+}
 
-function setMuted(on) {
-  muted = on;
-  if (mic) mic.getAudioTracks().forEach(t => { t.enabled = !on; });
-  muteBtn.classList.toggle("muted", on);
-  muteBtn.setAttribute("aria-pressed", String(on));
-  muteLabel.textContent = on ? "Unmute" : "Mute";
-  muteIcon.innerHTML = on ? UNMUTE_ICON : MUTE_ICON;
-  if (active) orbLabel.textContent = on ? "Muted" : "Listening…";
+// Collect the visible text of the active section (descending into nested
+// same-origin iframes — the sales workshop renders inside one).
+function frameText(doc, depth = 0) {
+  if (!doc || depth > 3) return "";
+  let t = "";
+  try { t = doc.body ? doc.body.innerText : ""; } catch { return ""; }
+  for (const f of doc.querySelectorAll("iframe")) {
+    try { t += "\n\n" + frameText(f.contentDocument, depth + 1); } catch {}
+  }
+  return t;
+}
+function pageContext(dept) {
+  const v = selectedVersion[dept];
+  const f = frames[`${dept}@${v}`];
+  if (!f) return "";
+  const text = frameText(f.contentDocument).replace(/\n{3,}/g, "\n\n").trim();
+  return text.slice(0, 30000);
+}
+
+async function persistStart(dept) {
+  convId = null;
+  try {
+    const r = await postJSON("/api/conversations", {
+      agent: dept, dept,
+      user_name: userName || null,
+      doc_version: selectedVersion[dept] || null,
+      voice: $("keeVoice").value,
+      client_id: clientId,
+    });
+    if (r && r.id) convId = r.id;
+  } catch { /* persistence is best-effort */ }
+}
+function persistTurn(role, text) {
+  if (!convId || !text) return;
+  postJSON("/api/turns", { conversation_id: convId, role, text }).catch(() => {});
+}
+function persistEnd(status) {
+  if (!convId) return;
+  postJSON(`/api/conversations/${convId}`, { status }).catch(() => {});
+}
+
+function flushToolResults() {
+  if (!ws || ws.readyState !== 1) return;
+  while (pendingToolResults.length) ws.send(JSON.stringify(pendingToolResults.shift()));
+}
+async function handleToolCall(m) {
+  let args = m.arguments;
+  if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = {}; } }
+  let resultStr = JSON.stringify({ results: [] });
+  if (m.name === "search_knowledge_base") {
+    try {
+      const r = await postJSON("/api/kb/search", { query: args?.query || "", limit: 5, dept: callDept });
+      const chunks = (r?.results || []).map((x) => x.content);
+      resultStr = JSON.stringify({ results: chunks });
+      track("tool_call", { query: args?.query, hits: chunks.length });
+    } catch {
+      resultStr = JSON.stringify({ results: [], error: "search_failed" });
+    }
+  }
+  pendingToolResults.push({ type: "tool.result", call_id: m.call_id, result: resultStr });
+  if (!replyInProgress) flushToolResults();
 }
 
 async function startCall() {
-  if (active) return;
+  if (active || current === "demo") return;
+  const persona = PERSONAS[current];
+  if (!persona) return;
   active = true;
-  panel.classList.add("live");
-  switcher.classList.add("locked");
-  orb.classList.add("on");
-  document.getElementById("micIcon").style.display = "none";
-  orbLabel.textContent = "Listening…";
-  setStatus("connecting", "Connecting…");
+  callDept = current;
+  $("keeStart").disabled = true; $("keeMute").disabled = false; $("keeEnd").disabled = false;
+  setKeeStatus("", "Connecting…");
 
-  // 1) fresh single-use token from our server
   let token;
   try {
     const r = await fetch("/api/token");
     if (!r.ok) throw new Error(await r.text());
     ({ token } = await r.json());
   } catch (e) {
-    fail("Couldn’t mint a token. Is the API key set?");
-    console.error(e);
-    return;
+    failCall("Couldn't mint a token. Is the API key set?");
+    console.error(e); return;
   }
 
-  // 2) audio graph at 24 kHz + hardware AEC/NS/AGC
   ctx = new AudioContext({ sampleRate: RATE });
   await ctx.resume();
   await ctx.audioWorklet.addModule(workletUrl);
@@ -658,15 +844,13 @@ async function startCall() {
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
   } catch (e) {
-    fail("Microphone permission denied.");
-    console.error(e);
-    return;
+    failCall("Microphone permission denied.");
+    console.error(e); return;
   }
   source = ctx.createMediaStreamSource(mic);
   worklet = new AudioWorkletNode(ctx, "pcm");
   source.connect(worklet).connect(ctx.destination);
 
-  // 3) websocket
   const url = new URL("wss://agents.assemblyai.com/v1/ws");
   url.searchParams.set("token", token);
   ws = new WebSocket(url);
@@ -678,17 +862,23 @@ async function startCall() {
     ws.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
   };
 
+  const docText = pageContext(callDept);
+  const docVersion = selectedVersion[callDept];
+  const callerNote = userName ? `\n\n# CALLER\nThe person you are speaking with is named ${userName}. You may greet them by name, but still confirm their role in question one.` : "";
+  const systemPrompt = persona.systemPrompt + KB_INSTRUCTION + callerNote +
+    (docText ? `\n\n# THE DOCUMENT ON SCREEN (v${docVersion}) — the caller is currently viewing this page; you have read it and can reference or answer questions about it\n${docText}` : "");
+
   ws.onopen = () => ws.send(JSON.stringify({
     type: "session.update",
     session: {
-      system_prompt: AGENTS[agentKey].systemPrompt + KB_INSTRUCTION,
-      greeting: AGENTS[agentKey].greeting,
+      system_prompt: systemPrompt,
+      greeting: persona.greeting,
       tools: [SEARCH_TOOL],
       input: {
         format: { encoding: "audio/pcm" },
         turn_detection: { vad_threshold: 0.5, min_silence: 200, max_silence: 1000, interrupt_response: true },
       },
-      output: { voice: voiceSel.value, format: { encoding: "audio/pcm" } },
+      output: { voice: $("keeVoice").value, format: { encoding: "audio/pcm" } },
     },
   }));
 
@@ -697,41 +887,32 @@ async function startCall() {
     switch (m.type) {
       case "session.ready":
         ready = true;
-        setStatus("live", "Connected — say hi to Kee");
-        persistStart();
-        track("call_started", { agent: agentKey, voice: voiceSel.value });
+        setKeeStatus("live", "Connected — say hi to Kee");
+        persistStart(callDept);
+        track("call_started", { agent: callDept, voice: $("keeVoice").value });
         break;
-
       case "input.speech.started":
-        setStatus("listening", "Listening…");
-        orbLabel.textContent = "Listening…";
+        setKeeStatus("live", "Listening…");
         break;
-
       case "transcript.user.delta":
-        if (!partialNode) partialNode = addTurn("user", m.text || "", true);
-        else partialNode.querySelector(".bubble").textContent = m.text || "";
-        transcriptEl.scrollTop = transcriptEl.scrollHeight;
+        if (!partialBubble) partialBubble = addKtTurn("user", m.text || "");
+        else partialBubble.querySelector(".bub").textContent = m.text || "";
+        $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
         break;
-
       case "transcript.user":
-        if (partialNode) { partialNode.remove(); partialNode = null; }
-        if (m.text) { addTurn("user", m.text); persistTurn("user", m.text); }
+        if (partialBubble) { partialBubble.remove(); partialBubble = null; }
+        if (m.text) { addKtTurn("user", m.text); persistTurn("user", m.text); }
         break;
-
       case "reply.started":
         replyInProgress = true;
-        setStatus("speaking", "Kee is speaking…");
-        orb.classList.add("speaking");
-        orbLabel.textContent = "Speaking…";
-        startAgentBubble();               // show a live caption bubble immediately
+        setKeeStatus("speaking", "Kee is speaking…");
+        agentBubble = addKtTurn("agent", "…");
         break;
-
       case "tool.call":
         handleToolCall(m);
         break;
-
       case "reply.audio": {
-        const raw = atob(m.data);                       // NB: reply audio is in `data`
+        const raw = atob(m.data);
         const pcm = new Int16Array(raw.length / 2);
         for (let i = 0; i < pcm.length; i++)
           pcm[i] = raw.charCodeAt(i * 2) | (raw.charCodeAt(i * 2 + 1) << 8);
@@ -745,26 +926,25 @@ async function startCall() {
         src.start(playT); playT += buf.duration;
         break;
       }
-
       case "transcript.agent":
-        if (m.text) { revealAgentText(m.text); persistTurn("agent", m.text); }
-        else finishAgentReveal();
+        if (m.text) {
+          if (agentBubble) agentBubble.querySelector(".bub").textContent = m.text;
+          else addKtTurn("agent", m.text);
+          persistTurn("agent", m.text);
+          $("keeTranscript").scrollTop = $("keeTranscript").scrollHeight;
+        }
         break;
-
       case "reply.done":
         replyInProgress = false;
-        orb.classList.remove("speaking");
-        if (m.status === "interrupted") { playT = ctx.currentTime; finishAgentReveal(); } // flush stale audio + caption
-        setStatus("live", "Your turn");
-        orbLabel.textContent = "Listening…";
-        flushToolResults(); // safe point to deliver any pending tool results
-        agentLiveNode = null;
+        if (m.status === "interrupted") playT = ctx.currentTime;
+        setKeeStatus("live", "Your turn");
+        flushToolResults();
+        agentBubble = null;
         break;
-
       case "session.error":
         console.error("agent error:", m.message);
         track("voice_error", { message: m.message });
-        fail(m.message || "Agent error");
+        failCall(m.message || "Agent error");
         break;
     }
   };
@@ -773,44 +953,81 @@ async function startCall() {
   ws.onerror = (e) => { console.error(e); };
 }
 
-function fail(msg) {
-  setStatus("error", msg);
-  orbLabel.textContent = "Something went wrong";
+function failCall(msg) {
+  setKeeStatus("error", msg);
   active = false;
-  switcher.classList.remove("locked");
-  orb.classList.remove("on", "speaking");
-  document.getElementById("micIcon").style.display = "";
   persistEnd("error");
-  cleanup();
+  cleanupCall();
 }
-
 function endCall(remoteClosed = false) {
+  if (!active) return;
   active = false;
   persistEnd("ended");
-  track("call_ended", { agent: agentKey, remote_closed: remoteClosed });
-  cleanup();
-  panel.classList.remove("live");
-  switcher.classList.remove("locked");
-  orb.classList.remove("on", "speaking");
-  document.getElementById("micIcon").style.display = "";
-  orbLabel.textContent = "Click to start again";
-  if (!remoteClosed) setStatus("idle", "Call ended");
+  track("call_ended", { agent: callDept, remote_closed: remoteClosed });
+  cleanupCall();
+  setKeeStatus("", "Call ended — start another any time");
 }
-
-function cleanup() {
+function cleanupCall() {
   try { ws && ws.readyState === 1 && ws.close(); } catch {}
-  try { mic && mic.getTracks().forEach(t => t.stop()); } catch {}
+  try { mic && mic.getTracks().forEach((t) => t.stop()); } catch {}
   try { worklet && (worklet.port.onmessage = null); } catch {}
   try { ctx && ctx.close(); } catch {}
-  ready = false; playT = 0; partialNode = null;
+  ready = false; playT = 0; partialBubble = null; agentBubble = null;
   replyInProgress = false; pendingToolResults.length = 0; convId = null;
-  finishAgentReveal(); agentLiveNode = null;
   if (muted) setMuted(false);
+  $("keeStart").disabled = false; $("keeMute").disabled = true; $("keeEnd").disabled = true;
+}
+function setMuted(on) {
+  muted = on;
+  if (mic) mic.getAudioTracks().forEach((t) => { t.enabled = !on; });
+  $("keeMuteLbl").textContent = on ? "Unmute" : "Mute";
+  if (active) setKeeStatus("live", on ? "Muted" : "Listening…");
 }
 
-orb.addEventListener("click", () => { active ? endCall() : startCall(); });
-endBtn.addEventListener("click", () => endCall());
-muteBtn.addEventListener("click", () => { if (active) setMuted(!muted); });
+function openKee() {
+  if (current === "demo") return;
+  closeDrawer();
+  document.body.classList.add("kee-open");
+  $("keeDrawer").setAttribute("aria-hidden", "false");
+  $("keeTitle").textContent = "Covalent Kee";
+  $("keeSub").innerHTML = `A five-minute voice discovery call on <b>${esc(META[current])}</b> (v${selectedVersion[current] || 1})`;
+  track("kee_opened", {});
+}
+function closeKee() {
+  document.body.classList.remove("kee-open");
+  $("keeDrawer").setAttribute("aria-hidden", "true");
+}
+
+$("keeCta").addEventListener("click", openKee);
+$("keeClose").addEventListener("click", () => { if (active) endCall(); closeKee(); });
+$("keeStart").addEventListener("click", startCall);
+$("keeEnd").addEventListener("click", () => endCall());
+$("keeMute").addEventListener("click", () => { if (active) setMuted(!muted); });
+
+/* ====== Shell wiring ======================================================== */
+$("nav").addEventListener("click", (e) => {
+  const a = e.target.closest(".nav-item"); if (!a) return;
+  e.preventDefault();
+  const dept = a.getAttribute("data-dept");
+  if (active && dept !== current) endCall();  // changing function ends the live call
+  show(dept);
+});
+$("fbFab").addEventListener("click", openDrawer);
+$("fbClose").addEventListener("click", closeDrawer);
+$("fbSubmit").addEventListener("click", postComment);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeDrawer(); if (!active) closeKee(); } });
+
+const body = document.body;
+function openNav() { body.classList.add("nav-open"); }
+function closeNav() { body.classList.remove("nav-open"); }
+$("hamb").addEventListener("click", openNav);
+$("scrim").addEventListener("click", () => { closeNav(); closeDrawer(); });
+
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+
+const start = location.hash.slice(1);
+show(META[start] ? start : "icp");
+refreshAllCounts();
 </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 {
-  "name": "icp-discovery-agent",
+  "name": "covalent-discovery-os",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@supabase/supabase-js": "^2.45.0",
     "posthog-node": "^4.2.0"
   }

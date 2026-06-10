@@ -169,7 +169,7 @@
         <button role="tab" data-tab="conversations" aria-selected="true">Conversations</button>
         <button role="tab" data-tab="kb" aria-selected="false">Knowledge Base</button>
       </div>
-      <a class="back" href="/">← Live demo</a>
+      <a class="back" href="/">← Operating System</a>
     </div>
   </header>
 
@@ -180,10 +180,13 @@
     <section id="view-conversations">
       <h2>Conversations</h2>
       <p class="muted" id="convCount">Loading…</p>
+      <div class="row" style="margin-top:10px"><label class="muted" style="font-size:12.5px">Function:</label>
+        <select id="convDept" style="font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:#fff"><option value="">All functions</option><option value="supply">Supply Chain (Ops)</option><option value="icp">ICP &amp; Persona</option><option value="ihp">Ideal Hiring Profile</option><option value="sales">Sales</option><option value="marcom">Marketing</option><option value="hr">HR</option></select>
+      </div>
       <div class="convo-grid" style="margin-top:14px">
         <div class="card" style="overflow:hidden">
           <table>
-            <thead><tr><th>ID</th><th>Agent</th><th>Voice</th><th>Started</th><th>Turns</th><th>Status</th></tr></thead>
+            <thead><tr><th>ID</th><th>Function</th><th>Caller</th><th>Started</th><th>Turns</th><th>Status</th></tr></thead>
             <tbody id="convRows"></tbody>
           </table>
         </div>
@@ -209,6 +212,9 @@
             </div>
           </label>
           <div class="queue" id="queue"></div>
+          <div class="row" style="margin-bottom:10px"><label class="muted" style="font-size:12.5px">Function:</label>
+            <select id="ingestDept" style="font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:#fff"><option value="">Global (all functions)</option><option value="supply">Supply Chain (Ops)</option><option value="icp">ICP &amp; Persona</option><option value="ihp">Ideal Hiring Profile</option><option value="sales">Sales</option><option value="marcom">Marketing</option><option value="hr">HR</option></select>
+          </div>
           <div class="row">
             <button type="button" class="btn" id="ingestBtn" disabled>Ingest</button>
             <span class="muted" id="ingestHint"></span>
@@ -218,7 +224,11 @@
         <div class="card">
           <div class="doc" style="border-bottom:1px solid var(--line)">
             <div class="t">Documents</div>
-            <button class="ghost" id="refreshDocs" style="font-size:12.5px;padding:6px 12px;border-radius:8px">Refresh</button>
+            <div class="row">
+              <select id="kbDeptFilter" style="font-size:12.5px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:#fff"><option value="">All functions</option><option value="supply">Supply Chain (Ops)</option><option value="icp">ICP &amp; Persona</option><option value="ihp">Ideal Hiring Profile</option><option value="sales">Sales</option><option value="marcom">Marketing</option><option value="hr">HR</option></select>
+              <button class="ghost" id="seedDocs" title="Build each function's knowledge base from its current document version" style="font-size:12.5px;padding:6px 12px;border-radius:8px">Seed from documents</button>
+              <button class="ghost" id="refreshDocs" style="font-size:12.5px;padding:6px 12px;border-radius:8px">Refresh</button>
+            </div>
           </div>
           <div class="docs" id="docsList"><div class="placeholder">Loading…</div></div>
         </div>
@@ -294,7 +304,8 @@ tabs.forEach((b) => b.addEventListener("click", () => {
 /* ====== Conversations ====== */
 let selectedId = null;
 async function loadConversations() {
-  const { data } = await api("/api/conversations");
+  const dept = $("convDept").value;
+  const { data } = await api("/api/conversations" + (dept ? "?dept=" + dept : ""));
   const rows = data?.conversations || [];
   $("convCount").textContent = rows.length ? `${rows.length} conversation${rows.length === 1 ? "" : "s"}` : "No conversations yet.";
   const tbody = $("convRows");
@@ -304,8 +315,8 @@ async function loadConversations() {
     tr.setAttribute("aria-selected", String(c.id === selectedId));
     tr.innerHTML = `
       <td class="idcell">${c.id.slice(0, 8)}…</td>
-      <td>${c.agent || "—"}</td>
-      <td>${c.voice || "—"}</td>
+      <td>${c.dept || c.agent || "—"}${c.doc_version ? " · v" + c.doc_version : ""}</td>
+      <td>${c.user_name || "—"}</td>
       <td>${fmt(c.started_at)}</td>
       <td>${c.turns}</td>
       <td><span class="tag ${c.status}">${c.status}</span></td>`;
@@ -322,13 +333,13 @@ async function openConversation(id, tbody) {
   if (!c) { detail.innerHTML = `<div class="placeholder">Could not load this conversation.</div>`; return; }
   const turns = (c.turns || []).map((t) => `
     <div class="turn ${t.role}">
-      <div class="who">${t.role === "agent" ? "Covalent Kee" : "Caller"}</div>
+      <div class="who">${t.role === "agent" ? "Covalent Kee" : (c.user_name || "Caller")}</div>
       <div class="bubble"></div>
     </div>`).join("");
   detail.innerHTML = `
     <div class="meta">
       <div><code>${c.id}</code></div>
-      <div>${c.agent} · voice ${c.voice || "—"} · <span class="tag ${c.status}">${c.status}</span></div>
+      <div>${c.dept || c.agent}${c.doc_version ? " · v" + c.doc_version : ""} · ${c.user_name || "anonymous"} · voice ${c.voice || "—"} · <span class="tag ${c.status}">${c.status}</span></div>
       <div>Started ${fmt(c.started_at)} · Ended ${fmt(c.ended_at)}</div>
     </div>
     <div class="turns">${turns || '<div class="placeholder">No turns recorded.</div>'}</div>`;
@@ -339,7 +350,8 @@ async function openConversation(id, tbody) {
 
 /* ====== Knowledge base ====== */
 async function loadDocs() {
-  const { data } = await api("/api/kb/docs");
+  const dept = $("kbDeptFilter").value;
+  const { data } = await api("/api/kb/docs" + (dept ? "?dept=" + dept : ""));
   const docs = data?.documents || [];
   const list = $("docsList");
   if (!docs.length) { list.innerHTML = `<div class="placeholder">No documents yet. Ingest something on the left.</div>`; return; }
@@ -350,7 +362,7 @@ async function loadDocs() {
     row.innerHTML = `
       <div>
         <div class="t"></div>
-        <div class="s">${d.chunks} chunk${d.chunks === 1 ? "" : "s"} · ${d.char_count.toLocaleString()} chars · ${fmt(d.created_at)} · ${d.source || "paste"}</div>
+        <div class="s">${d.dept || "global"} · ${d.chunks} chunk${d.chunks === 1 ? "" : "s"} · ${d.char_count.toLocaleString()} chars · ${fmt(d.created_at)} · ${d.source || "paste"}</div>
       </div>
       <button class="del">Delete</button>`;
     row.querySelector(".t").textContent = d.title;
@@ -447,7 +459,7 @@ $("ingestBtn").addEventListener("click", async () => {
   for (const q of ready) {
     const { ok, data } = await api("/api/kb/ingest", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ title: q.title, text: q.text, source: q.file.name }),
+      body: JSON.stringify({ title: q.title, text: q.text, source: q.file.name, dept: $("ingestDept").value || null }),
     });
     if (ok && data?.document) okCount++;
     else { q.status = "err"; q.note = data?.error || "ingest failed"; }
@@ -459,6 +471,16 @@ $("ingestBtn").addEventListener("click", async () => {
   loadDocs();
 });
 $("refreshDocs").addEventListener("click", loadDocs);
+$("seedDocs").addEventListener("click", async () => {
+  const btn = $("seedDocs");
+  btn.disabled = true; btn.textContent = "Seeding…";
+  const { ok, data } = await api("/api/kb/seed", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+  btn.disabled = false; btn.textContent = "Seed from documents";
+  if (ok) { toast(`Seeded ${data.seeded.length} function knowledge bases`); loadDocs(); }
+  else toast(data?.error || "Seed failed");
+});
+$("kbDeptFilter").addEventListener("change", loadDocs);
+$("convDept").addEventListener("change", loadConversations);
 
 /* ====== Boot ====== */
 loadConversations();
