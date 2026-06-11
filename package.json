@@ -9,7 +9,6 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.104.1",
     "@posthog/ai": "^8.1.5",
     "@supabase/supabase-js": "^2.45.0",
     "posthog-node": "^5.36.11"
