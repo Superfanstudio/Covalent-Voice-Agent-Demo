@@ -56,10 +56,6 @@ async function serveFile(res, name, type) {
 const STATIC = {
   "/": ["index.html", "text/html; charset=utf-8"],
   "/index.html": ["index.html", "text/html; charset=utf-8"],
-  "/demo": ["demo.html", "text/html; charset=utf-8"],
-  "/demo.html": ["demo.html", "text/html; charset=utf-8"],
-  "/admin": ["admin.html", "text/html; charset=utf-8"],
-  "/admin.html": ["admin.html", "text/html; charset=utf-8"],
   "/personas.js": ["personas.js", "text/javascript; charset=utf-8"],
   "/data/depts.json": ["data/depts.json", "application/json; charset=utf-8"],
   "/covalent-medical-logo.svg": ["covalent-medical-logo.svg", "image/svg+xml; charset=utf-8"],
@@ -99,9 +95,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  Covalent Operating System → http://localhost:${PORT}`);
-  console.log(`  Voice demo (v1)           → http://localhost:${PORT}/demo`);
-  console.log(`  Admin panel               → http://localhost:${PORT}/admin\n`);
+  console.log(`\n  Covalent Operating System → http://localhost:${PORT}\n`);
 });
 
 // Flush PostHog before the process exits so no events are lost on redeploy.

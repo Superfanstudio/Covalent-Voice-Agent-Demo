@@ -372,6 +372,10 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 .di-dl{flex:0 0 auto;font-size:12px;font-weight:500;color:var(--rust);text-decoration:none;border:1px solid rgba(163,67,45,.3);
   border-radius:8px;padding:5px 11px;white-space:nowrap;}
 .di-dl:hover{background:var(--rustbg);}
+.di-del{flex:0 0 auto;font-size:12px;font-weight:500;color:#a23b2b;background:none;cursor:pointer;
+  border:1px solid rgba(162,59,43,.28);border-radius:8px;padding:5px 11px;white-space:nowrap;}
+.di-del:hover{background:rgba(162,59,43,.07);}
+.di-del:disabled{opacity:.5;cursor:default;}
 
 /* ---------- Mobile ---------- */
 @media(max-width:880px){
@@ -414,11 +418,9 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 <a class="nav-item" data-dept="hr" href="#hr"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">HR</span><span class="nav-desc">AI-native HR operating model</span></span><span class="nav-count" data-dept="hr">0</span></a>
 </div>
 <div class="nav-group"><div class="nav-group-label">Workbook</div>
-<a class="nav-item" data-dept="docs" href="#docs"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Documents</span><span class="nav-desc">Shared source material by function</span></span></a>
+<a class="nav-item" data-dept="docs" href="#docs"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Documents</span><span class="nav-desc">Shared material &amp; each agent's knowledge base</span></span></a>
+<a class="nav-item" data-dept="convos" href="#convos"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Conversations</span><span class="nav-desc">Every voice call &amp; transcript by function</span></span></a>
 <a class="nav-item" data-dept="activity" href="#activity"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Activity Log</span><span class="nav-desc">Who's shaping the live workbook</span></span></a>
-</div>
-<div class="nav-group"><div class="nav-group-label">Archive</div>
-<a class="nav-item" data-dept="demo" href="#demo"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Voice Demo (v1)</span><span class="nav-desc">Original ICP &amp; hiring voice agents</span></span></a>
 </div>
     </nav>
     <div class="side-footer">
@@ -461,6 +463,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
       <div class="loader" id="loader"><div class="spinner"></div><div>Loading…</div></div>
       <div class="activity" id="activityPanel"></div>
       <div class="activity" id="docsPanel"></div>
+      <div class="activity" id="convosPanel"></div>
       <button class="kee-fab" id="keeCta" type="button" aria-label="Talk to Covalent Kee">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
         <span>Covalent Kee</span>
@@ -597,8 +600,8 @@ import { PERSONAS } from "/personas.js";
 const RATE = 24_000;
 console.log("%cCovalent Kee build: ring-buffer-playback", "color:#9a3412;font-weight:600");
 const DEPTS = ["supply", "icp", "ihp", "sales", "marcom", "hr"];
-const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents" };
-const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs";   // pseudo-sections: no versions, no feedback, no Kee
+const META = { supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents", convos: "Conversations" };
+const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs" || d === "convos";   // pseudo-sections: no versions, no feedback, no Kee
 const PRESET_NAMES = [["Dr. M", "Covalent"], ["Manny", "Covalent"], ["Keith", "Covalent"], ["Sne", "KeeMakr"], ["Raj", "KeeMakr"]];
 
 const $ = (id) => document.getElementById(id);
@@ -794,7 +797,7 @@ async function show(dept) {
   $("fbFab").classList.toggle("hidden", NO_DOC(dept));
   renderVersionBar(dept);
 
-  const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()] };
+  const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()], convos: ["convosPanel", () => renderConvos()] };
   if (PANELS[dept]) {
     showOnly("__none__");
     Object.entries(PANELS).forEach(([k, [id]]) => $(id).classList.toggle("show", k === dept));
@@ -811,6 +814,15 @@ async function show(dept) {
 
   const f = await ensureFrame(dept, version);
   showOnly(`${dept}@${version}`);
+
+  // If Kee is open and we moved to a different function, reset the panel so the
+  // previous agent's conversation doesn't linger under this one.
+  if (document.body.classList.contains("kee-open") && !active && dept !== keeDept) {
+    $("keeSub").innerHTML = `A five-minute voice discovery call on <b>${esc(META[dept])}</b> (v${selectedVersion[dept] || version || 1})`;
+    resetKeeTranscript();
+    keeDept = dept;
+  }
+
   const reveal = () => { loader.style.display = "none"; };
   if (f.dataset.ready) reveal();
   else { f.addEventListener("load", () => { f.dataset.ready = "1"; reveal(); }, { once: true }); setTimeout(reveal, 1500); }
@@ -1101,6 +1113,7 @@ const playbackUrl = URL.createObjectURL(new Blob([`
 
 let ctx, mic, source, worklet, playback, ws, ready = false, playT = 0, muted = false, active = false;
 let convId = null, callDept = null, guideMode = false;
+let keeDept = null; // which function the Kee panel/transcript currently belongs to
 let replyInProgress = false;
 const pendingToolResults = [];
 let agentBubble = null, partialBubble = null;
@@ -1225,6 +1238,7 @@ async function startCall() {
   if (!persona) return;
   active = true;
   callDept = guideMode ? "guide" : current;
+  keeDept = callDept;
   // Pause PostHog session replay (rrweb) for the duration of the call. Its
   // continuous DOM serialization produces main-thread long tasks that starve the
   // audio graph and make Kee's voice choppy. Resumed in cleanupCall().
@@ -1271,16 +1285,38 @@ async function startCall() {
   const docVersion = selectedVersion[callDept];
   const callerNote = userName ? `\n\n# CALLER\nThe person you are speaking with is named ${userName}. You may greet them by name, but still confirm their role in question one.` : "";
 
-  // Kee's long-term memory: everything that has happened across the workbook.
-  let memoryText = "";
+  // Kee's long-term memory + team-level coverage, fetched together. Memory is the
+  // running workbook; coverage tells Kee what's already answered vs still open so
+  // she opens with a progress summary and asks ONLY the open areas. Both are
+  // best-effort — the call proceeds normally if either is unavailable.
+  let memoryText = "", coverage = null;
   try {
-    const mr = await fetch("/api/memory");
-    if (mr.ok) memoryText = ((await mr.json()).content || "").slice(0, 18000);
-  } catch { /* memory is additive — calls work without it */ }
+    const memP = fetch(`/api/memory?dept=${encodeURIComponent(callDept)}`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const covP = guideMode ? Promise.resolve(null) : Promise.race([
+      fetch(`/api/coverage?dept=${encodeURIComponent(callDept)}`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      new Promise((res) => setTimeout(() => res(null), 7000)), // don't let coverage stall the call
+    ]);
+    const [mem, cov] = await Promise.all([memP, covP]);
+    if (mem) memoryText = (mem.content || "").slice(0, 18000);
+    if (cov && Array.isArray(cov.open)) coverage = cov;
+  } catch { /* additive — calls work without them */ }
 
-  const systemPrompt = persona.systemPrompt + KB_INSTRUCTION + callerNote +
-    (memoryText ? `\n\n# WORKBOOK MEMORY — everything that has happened so far across all functions (calls, feedback, documents, versions). Use it: don't re-ask what this person already answered, reference and build on what others have said, and probe open questions and contradictions.\n${memoryText}` : "") +
+  const coverageBlock = coverage ? `\n\n# COVERAGE STATUS — team-level progress on this function so far\nAbout ${coverage.percent}% of the key areas are covered.\nALREADY COVERED (do NOT re-ask — reference only if useful): ${coverage.covered.map((a) => a.label).join("; ") || "none yet"}.\nSTILL OPEN (ask ONLY these, in this order — this OVERRIDES the numbered question list above): ${coverage.open.map((a) => a.label).join("; ") || "none — everything is covered"}.\nYour greeting already states the progress and the open areas; after it, go straight to the first open area. If everything is covered, thank them and invite any final additions instead of re-interviewing.` : "";
+
+  const systemPrompt = persona.systemPrompt + KB_INSTRUCTION + callerNote + coverageBlock +
+    (memoryText ? `\n\n# MEMORY — everything captured so far for THIS function (calls, feedback, documents, versions). Use it: don't re-ask what's already been answered, reference and build on what others have said, and probe open questions and contradictions.\n${memoryText}` : "") +
     (docText ? `\n\n# THE DOCUMENT ON SCREEN (v${docVersion}) — the caller is currently viewing this page; you have read it and can reference or answer questions about it\n${docText}` : "");
+
+  // Kee opens with the dynamic progress summary when we have one.
+  const greeting = (coverage && coverage.opener) ? coverage.opener : persona.greeting;
+
+  // Reinforce the spoken summary with a small status chip in the panel header.
+  if (!guideMode) {
+    const sub = $("keeSub");
+    let chip = document.getElementById("keeCovChip");
+    if (!chip && sub) { chip = document.createElement("span"); chip.id = "keeCovChip"; sub.appendChild(chip); }
+    if (chip) chip.innerHTML = coverage ? ` · <b>${coverage.percent}% covered</b> · ${coverage.open.length} open` : "";
+  }
 
   const url = new URL("wss://agents.assemblyai.com/v1/ws");
   url.searchParams.set("token", token);
@@ -1297,7 +1333,7 @@ async function startCall() {
     type: "session.update",
     session: {
       system_prompt: systemPrompt,
-      greeting: persona.greeting,
+      greeting,
       tools: [SEARCH_TOOL],
       input: {
         format: { encoding: "audio/pcm" },
@@ -1417,6 +1453,13 @@ function setMuted(on) {
   if (active) setKeeStatus("live", on ? "Muted" : "Listening…");
 }
 
+// Reset Kee's transcript to the empty state and drop any leftover per-call state.
+function resetKeeTranscript() {
+  $("keeTranscript").innerHTML = `<div class="kee-empty" id="keeEmpty">Kee runs a short, six-question voice interview about the function you're viewing — and she's read the page, so you can also ask her about it.<br><br>Click <b>Start call</b>, allow the microphone, and talk naturally.</div>`;
+  document.getElementById("keeCovChip")?.remove();
+  convId = null; partialBubble = null; agentBubble = null;
+}
+
 function openKee() {
   if (NO_DOC(current)) return;
   guideMode = false;
@@ -1425,10 +1468,10 @@ function openKee() {
   $("keeDrawer").setAttribute("aria-hidden", "false");
   $("keeTitle").textContent = "Covalent Kee";
   $("keeSub").innerHTML = `A five-minute voice discovery call on <b>${esc(META[current])}</b> (v${selectedVersion[current] || 1})`;
-  // restore the call empty-state if the guide text is showing and no call ran
-  if (!document.querySelector("#keeTranscript .kt-turn")) {
-    $("keeTranscript").innerHTML = `<div class="kee-empty" id="keeEmpty">Kee runs a short, six-question voice interview about the function you're viewing — and she's read the page, so you can also ask her about it.<br><br>Click <b>Start call</b>, allow the microphone, and talk naturally.</div>`;
-  }
+  // Clear the transcript when opening for a DIFFERENT function (or first time), so
+  // one agent's call never lingers under another. Never wipe a live call.
+  if (!active && (current !== keeDept || !document.querySelector("#keeTranscript .kt-turn"))) resetKeeTranscript();
+  keeDept = current;
   track("kee_opened", {});
 }
 const GUIDE_HTML = `
@@ -1781,6 +1824,7 @@ function buildDocsPanel() {
       <div class="doc-row"><span class="dr-l"></span><button class="doc-go" id="docGo" type="button">Upload</button><span class="doc-status" id="docStatus"></span></div>
     </div>
     <div id="docList"><div class="act-empty">Loading documents…</div></div>
+    <div id="kbList" style="margin-top:30px"></div>
   </div>`;
 
   $("docDrop").addEventListener("click", () => $("docInput").click());
@@ -1809,6 +1853,32 @@ function buildDocsPanel() {
   });
   $("docFold").addEventListener("change", () => $("docCode").classList.toggle("on", $("docFold").checked));
   $("docGo").addEventListener("click", submitDoc);
+  // delete a shared document (delegated — survives list re-renders)
+  $("docList").addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-del-doc]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-del-doc");
+    if (!confirm("Delete this document? This removes the file and its entry.")) return;
+    btn.disabled = true; btn.textContent = "Deleting…";
+    try {
+      const r = await fetch(`/api/docs?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!r.ok) throw new Error();
+      loadDocList();
+    } catch { btn.disabled = false; btn.textContent = "Delete"; alert("Couldn't delete the document."); }
+  });
+  // delete a knowledge-base entry (delegated)
+  $("kbList").addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-del-kb]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-del-kb");
+    if (!confirm("Remove this from the agent's knowledge base? You can rebuild it later by generating a new version or re-seeding.")) return;
+    btn.disabled = true; btn.textContent = "Deleting…";
+    try {
+      const r = await fetch(`/api/kb/docs?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!r.ok) throw new Error();
+      loadKbList();
+    } catch { btn.disabled = false; btn.textContent = "Delete"; alert("Couldn't delete the knowledge-base entry."); }
+  });
 
   // sensible defaults: last real section, and the captured name if it's a preset
   if (DEPTS.includes(lastRealDept)) $("docDept").value = lastRealDept;
@@ -1901,7 +1971,8 @@ async function loadDocList() {
               <div class="di-m">shared by <b>${esc(d.shared_by || "unknown")}</b> · ${esc(fmtWhen(d.created_at))} · ${(d.size_bytes / 1024).toFixed(0)} KB</div>
             </div>
             <span class="di-fold ${d.version_folded ? "in" : "pending"}">${d.version_folded ? "in v" + d.version_folded : "next version"}</span>
-            ${d.url ? `<a class="di-dl" href="${d.url}" target="_blank" rel="noopener">Download</a>` : ""}
+            ${d.url ? `<a class="di-dl" href="${d.url}" target="_blank" rel="noopener">View</a>` : ""}
+            <button class="di-del" type="button" data-del-doc="${d.id}" title="Delete document">Delete</button>
           </div>`).join("")}
       </div>`).join("");
     // document sharers also count as shapers of their functions
@@ -1914,6 +1985,97 @@ async function loadDocList() {
 function renderDocs() {
   buildDocsPanel();
   loadDocList();
+  loadKbList();
+}
+
+// The per-function knowledge base — what each agent searches during a call.
+async function loadKbList() {
+  const el = $("kbList");
+  if (!el) return;
+  try {
+    const r = await fetch("/api/kb/docs");
+    if (!r.ok) { el.innerHTML = ""; return; }
+    const { documents } = await r.json();
+    const head = `<div class="dg-t" style="margin:0 0 4px;font-size:15px">Knowledge base</div><p class="act-sub" style="margin:0 0 14px">What each agent can pull up with its <b>search</b> during a call — the function's document, ingested and made searchable.</p>`;
+    if (!documents?.length) { el.innerHTML = head + `<div class="act-empty">Knowledge base is empty. Generate or seed a version to fill it.</div>`; return; }
+    const byDept = {};
+    for (const d of documents) (byDept[d.dept] = byDept[d.dept] || []).push(d);
+    el.innerHTML = head + DEPTS.filter((d) => byDept[d]).map((dept) => `
+      <div class="doc-group">
+        <div class="dg-t">${esc(META[dept])} <span style="font-weight:400;color:var(--ink3);font-size:12px">· ${byDept[dept].length}</span></div>
+        ${byDept[dept].map((d) => `
+          <div class="doc-item">
+            <div class="doc-ico">📚</div>
+            <div class="di-b">
+              <div class="di-t">${esc(d.title)}</div>
+              <div class="di-m">${(d.chunks ?? 0)} searchable chunks · ${(d.char_count || 0).toLocaleString()} chars · ${esc(d.source || "")}</div>
+            </div>
+            <button class="di-del" type="button" data-del-kb="${d.id}" title="Remove from this agent's knowledge base">Delete</button>
+          </div>`).join("")}
+      </div>`).join("");
+  } catch { el.innerHTML = ""; }
+}
+
+// Conversations: every voice call, by function, with on-demand transcripts.
+async function renderConvos() {
+  const el = $("convosPanel");
+  el.innerHTML = `<div class="act-wrap"><h1 class="act-h">Conversations</h1><p class="act-sub">Every voice discovery call with Kee, grouped by function. Click a call to read its transcript. Each one feeds that function's memory.</p><div id="convoList"><div class="act-empty">Loading…</div></div></div>`;
+  const list = $("convoList");
+  try {
+    const r = await fetch("/api/conversations");
+    if (!r.ok) { list.innerHTML = `<div class="act-empty">Conversations need the server connected.</div>`; return; }
+    const { conversations } = await r.json();
+    const real = (conversations || []).filter((c) => (c.turns || 0) > 0);
+    if (!real.length) { list.innerHTML = `<div class="act-empty">No conversations yet. Start a call with Kee on any function.</div>`; return; }
+    const byDept = {};
+    for (const c of real) (byDept[c.dept] = byDept[c.dept] || []).push(c);
+    list.innerHTML = DEPTS.filter((d) => byDept[d]).map((dept) => `
+      <div class="doc-group">
+        <div class="dg-t">${esc(META[dept] || dept)} <span style="font-weight:400;color:var(--ink3);font-size:12px">· ${byDept[dept].length}</span></div>
+        ${byDept[dept].map((c) => `
+          <div class="doc-item convo-row" data-id="${c.id}" style="cursor:pointer">
+            <div class="di-b">
+              <div class="di-t">${esc(c.user_name || "Unnamed caller")} <span style="color:var(--ink3);font-weight:400">· ${c.turns} turns</span></div>
+              <div class="di-m">v${c.doc_version || "?"} · ${esc(fmtWhen(c.started_at))} · ${esc(c.status || "")}</div>
+            </div>
+            <span class="di-fold pending" data-view="${c.id}">view</span>
+            <button class="di-del" type="button" data-del-convo="${c.id}" title="Delete conversation">Delete</button>
+          </div>
+          <div class="convo-transcript" id="ct-${c.id}" style="display:none;margin:0 0 10px"></div>`).join("")}
+      </div>`).join("");
+    list.addEventListener("click", async (e) => {
+      // delete takes priority over the row's expand
+      const del = e.target.closest("[data-del-convo]");
+      if (del) {
+        const id = del.getAttribute("data-del-convo");
+        if (!confirm("Delete this conversation and its transcript? This also removes it from what gets folded into memory.")) return;
+        del.disabled = true; del.textContent = "Deleting…";
+        try {
+          const r = await fetch("/api/conversations/" + encodeURIComponent(id), { method: "DELETE" });
+          if (!r.ok) throw new Error();
+          renderConvos();
+        } catch { del.disabled = false; del.textContent = "Delete"; alert("Couldn't delete the conversation."); }
+        return;
+      }
+      const row = e.target.closest(".convo-row");
+      if (!row) return;
+      const id = row.getAttribute("data-id");
+      const box = document.getElementById("ct-" + id);
+      if (box.style.display !== "none") { box.style.display = "none"; return; }
+      box.style.display = "";
+      if (box.dataset.loaded) return;
+      box.innerHTML = `<div class="act-empty">Loading transcript…</div>`;
+      try {
+        const cr = await fetch("/api/conversations/" + encodeURIComponent(id));
+        const { conversation } = await cr.json();
+        const turns = conversation?.turns || [];
+        box.innerHTML = turns.length
+          ? turns.map((t) => `<div class="kt-turn ${t.role === "agent" ? "agent" : "user"}"><div class="who">${t.role === "agent" ? "Covalent Kee" : esc(conversation.user_name || "You")}</div><div class="bub">${esc(t.text)}</div></div>`).join("")
+          : `<div class="act-empty">No turns recorded.</div>`;
+        box.dataset.loaded = "1";
+      } catch { box.innerHTML = `<div class="act-empty">Couldn't load transcript.</div>`; }
+    });
+  } catch { list.innerHTML = `<div class="act-empty">Couldn't load conversations.</div>`; }
 }
 
 /* ====== Shell wiring ======================================================== */

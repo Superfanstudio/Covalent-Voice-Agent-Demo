@@ -28,6 +28,55 @@ export const BOUNDARIES = `
 const GREETING = (topic) =>
   `Hi there — I'm Covalent Kee, an AI interviewer helping Covalent refine its ${topic}. This'll just take about five minutes, it's a quick back-and-forth, and there are no wrong answers — "we don't know yet" is totally fine. Ready to jump in?`;
 
+// The substantive discovery areas per function (the persona's questions 2–6;
+// question 1 is caller identity, handled by the greeting). Used by the coverage
+// assessment to decide what's covered team-wide and what's still open, so Kee
+// opens with a progress summary and asks ONLY the open areas.
+export const AREAS = {
+  icp: [
+    { id: "best_accounts", label: "Best accounts & common traits", prompt: "Their best accounts (revenue, retention, referenceable) and what those clinics share: practice type, size, ownership, who championed it." },
+    { id: "ideal_practice", label: "Ideal practice profile", prompt: "The ideal practice on paper: type, providers/locations, ownership, and what devices, toxins, or fillers they already run." },
+    { id: "decision_dynamics", label: "Decision-maker & objections", prompt: "Who really drives the deal (owner, practice manager, lead injector), what they care about most, and the biggest objection." },
+    { id: "core_problem_trigger", label: "Core problem & purchase trigger", prompt: "The core problem best customers are solving (revenue, demand, efficiency) and the event that triggers a purchase." },
+    { id: "target_segments", label: "Who to chase vs. avoid", prompt: "The top one or two customer types to go after hard this year, and who looks like a fit but isn't worth it." },
+  ],
+  ihp: [
+    { id: "ideal_employee", label: "Ideal-employee through-line", prompt: "In one sentence, the through-line true of every great Covalent hire across every role." },
+    { id: "values_and_redlines", label: "Values & instant no's", prompt: "The handful of values to hire for, and the behaviors that are an instant no." },
+    { id: "great_by_motion", label: "Great hire per motion", prompt: "What distinguishes a great hire across capital, consumables, and digital — and which is hardest to find." },
+    { id: "retention_predictor", label: "Success/retention predictor", prompt: "The trait that best predicts who stays and succeeds, and beyond cash what keeps the best people." },
+    { id: "bad_hire_signals", label: "Bad-hire warning signs", prompt: "Early warning signs a hire has gone wrong, and how fast to exit a bad fit." },
+  ],
+  sales: [
+    { id: "pod_model", label: "Pod model — holds vs. breaks", prompt: "The three-product-pod model (one senior rep + one CSM + shared agent flywheel): where it holds in the field and where it breaks." },
+    { id: "agent_flywheel", label: "Agent vs. human funnel stages", prompt: "Of lead-gen, outbound, inbound triage, and post-sale, which stages they'd trust an agent to own and which must stay human." },
+    { id: "bundled_close", label: "Bundled close realism", prompt: "Device + 3-year consumables auto-ship + AI subscription in one deal: realistic at launch, and the biggest objection from buyers or reps." },
+    { id: "scaling_story", label: "Scaling year 1 → year 3", prompt: "Three regions growing to ~twenty sub-regions and 4x accounts per rep by year three: what breaks first." },
+    { id: "biggest_gap", label: "Biggest gap/risk to fix", prompt: "The one thing they'd fix or add before putting the model in front of investors or first hires." },
+  ],
+  marcom: [
+    { id: "brand_gate", label: "Brand DNA hard gate", prompt: "Nothing brand-facing publishes without the brand agent + a human approver: right call, or a bottleneck." },
+    { id: "content_factory", label: "Content factory limits", prompt: "Agents draft, humans edit/own claims, engine learns from edits: where it works and what must stay human-originated." },
+    { id: "workshops", label: "Workshops as sales rooms", prompt: "Pre-qualified buy-ready rooms with 6–8 week nurture and a close-focused war room: what past events got wrong and what makes this work." },
+    { id: "web_destination", label: "Web destination motion", prompt: "Porting the Canadian clickable-destination playbook (300–500 leads/mo manual) into an always-on engine: portable, and what it takes to beat those numbers." },
+    { id: "top_motion_gap", label: "Top motion & biggest gap", prompt: "Which marketing motion matters most in the first six months, and the biggest gap or risk as drawn." },
+  ],
+  hr: [
+    { id: "human_core", label: "Four-chair human core", prompt: "Head of People + talent/comp partner + ops/ER lead + L&D lead: right shape for soft launch, and which could start fractional." },
+    { id: "agent_gates", label: "Agent gates", prompt: "Agents source/screen/schedule/prepare but humans make every hire/rating/termination: where to tighten, and where agents could do more." },
+    { id: "comp_design", label: "Comp design", prompt: "Hunter/farmer/enterprise/SaaS structure with residuals and equity where no legacy plan transfers: what the comp plan must reward to retain the best." },
+    { id: "lnd_engine", label: "L&D as RPE engine", prompt: "Converting legacy-trained hires into AI-native operators behind the $1–2M+ revenue-per-employee thesis: what that training must look like in practice." },
+    { id: "biggest_people_risk", label: "Biggest people risk", prompt: "The biggest people risk (commissioned field force, churn, surveillance line, etc.) and what's missing from the model." },
+  ],
+  supply: [
+    { id: "two_layer_thesis", label: "Two-layer thesis", prompt: "Physical floor scales with volume/operators while the coordination layer scales with agents not headcount: where it holds and where it breaks." },
+    { id: "activation_quarterback", label: "Activation quarterback", prompt: "One orchestration agent under a single owner coordinating delivery, install, field service, and clinical training: right fix for the four-silo problem, and who owns it." },
+    { id: "cold_chain", label: "Consumables cold chain", prompt: "Biologics receiving, temperature excursions, expiry rotation, last-mile into the practice closet: the hardest part to get right at soft launch." },
+    { id: "hard_gates", label: "Hard gates placement", prompt: "Credit holds, customs, device pass/fail, recall execution stay human: are the gates right, and what should agents own more (or never touch)." },
+    { id: "biggest_op_risk", label: "Biggest operational risk", prompt: "The biggest operational risk at soft launch and the one thing missing from the map as drawn." },
+  ],
+};
+
 export const PERSONAS = {
   guide: {
     label: "How to Use",
