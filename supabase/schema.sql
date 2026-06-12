@@ -35,7 +35,8 @@ alter table turns enable row level security;
 create table if not exists kb_documents (
   id          uuid primary key default gen_random_uuid(),
   title       text not null,
-  source      text,                               -- 'paste' | 'seed' | 'version' | 'upload' | filename/url
+  source      text,                               -- 'paste' | 'seed' | 'version' | 'upload:<shared_doc_id>' | filename/url
+                                                    -- 'upload:<id>' links a KB entry to its shared_documents row so deleting the doc removes it from the KB
   dept        text,                               -- null = global (searchable from every section)
   char_count  int not null default 0,
   created_at  timestamptz not null default now()

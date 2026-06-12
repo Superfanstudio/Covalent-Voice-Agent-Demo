@@ -1315,8 +1315,22 @@ function persistTurn(role, text) {
 }
 function persistEnd(status) {
   if (!convId) return;
-  postJSON(`/api/conversations/${convId}`, { status, client_id: clientId, dept: callDept }).catch(() => {});
+  const url = `/api/conversations/${convId}`;
+  const payload = { status, client_id: clientId, dept: callDept };
+  // The call-end request also triggers Kee's memory fold server-side, so it must
+  // actually arrive — even when the user closes the tab mid-call. sendBeacon (and
+  // keepalive as a fallback) let the request outlive the page being torn down.
+  try {
+    if (navigator.sendBeacon &&
+        navigator.sendBeacon(url, new Blob([JSON.stringify(payload)], { type: "application/json" }))) {
+      return;
+    }
+  } catch { /* fall through to fetch */ }
+  fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), keepalive: true }).catch(() => {});
 }
+// If the page is hidden/closed while a call is live, end it so it doesn't get
+// stranded in "live" (which also means its transcript never folds into memory).
+window.addEventListener("pagehide", () => { if (active) persistEnd("ended"); });
 
 function flushToolResults() {
   if (!ws || ws.readyState !== 1) return;

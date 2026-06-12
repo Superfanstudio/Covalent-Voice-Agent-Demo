@@ -18,7 +18,7 @@ A voice-first, self-updating discovery workbook for **Covalent** (AI-first North
 | **Progress-aware interviews (coverage)** | Before each call, Fable scores the team's progress against a fixed 6-area rubric per function (`AREAS` in personas.js). Kee opens with "we're about seventy percent there", skips covered areas, and asks **only the open ones**. Design doc: `docs/superpowers/specs/`. |
 | **Feedback** | Per-function comments (browser → Supabase REST with the publishable key). Contributors appear in "Shaped by" chips on the sections they've touched. |
 | **Version generation** | "✦ New version" (access-code gated) has Claude fold all feedback + transcripts + shared documents since the last version into the document as surgical find/replace edits, with `<mark>` highlights and a changelog. KB re-seeds and memory rebuilds automatically. |
-| **Documents** | Upload Word/PDF/text/markdown/images (≤4MB), attributed to a sharer. Raw file stored in Supabase Storage (`shared-docs` bucket), text extracted client-side into the KB, images sent to Claude as vision inputs at generation time. Optional "fold into a new version now". |
+| **Documents** | Upload Word/PDF/text/markdown/images (≤4MB), attributed to a sharer. Raw file stored in Supabase Storage (`shared-docs` bucket), text extracted client-side into the KB, images sent to Claude as vision inputs at generation time. Optional "fold into a new version now". Deleting a document also removes its knowledge-base entry (the KB copy is tagged `upload:<doc_id>`), so Kee stops retrieving content the contributor has removed. |
 | **Agent Mode** | Operator console (KeeMakr: Sne/Raj). Plain-language instruction → Claude stages a **draft** (purple banner, private), preview in place, refine cumulatively, then Approve & publish as the next version — or Discard. |
 | **Function memory ("AI brain")** | One living memory document **per function** (keyed by dept in `agent_memory`), maintained by Claude Fable (1M context) from that function's transcripts, feedback, documents, and versions. Updated incrementally after every call, rebuilt after every publish. Injected into that function's voice sessions — ICP calls never see Sales history. |
 | **Activity Log & Conversations** | Unified timeline (comments, calls, document shares, publishes) + contributor leaderboard, plus an in-app Conversations panel for reading transcripts. |
@@ -79,9 +79,9 @@ lib/
   versions.js         Version read/list, Claude generation, Agent Mode draft lifecycle.
   memory.js           Per-function memory: incremental update + full rebuild (Fable).
   coverage.js         Team-level coverage vs the AREAS rubric → percent + open areas + spoken opener.
-  docs.js             Document upload/list/delete/download, Storage bucket, fold tracking.
+  docs.js             Document upload/list/delete/download, Storage bucket, fold tracking. Upload ingests text into the KB tagged `upload:<doc_id>`; delete removes that KB entry too.
   kb.js               Chunking (~800 chars) + ingest + search_kb RPC.
-  conversations.js    Conversation/turn persistence.
+  conversations.js    Conversation/turn persistence + reapStale (end calls stranded in `live`, for the sweep endpoint).
   activity.js         Activity feed aggregation (public-safe: no transcript text).
   extract.js          HTML → plain text (handles JS-rendered sections + nested base64 blobs).
   supabase.js         Service-role client; NotConfigured error type.
@@ -127,7 +127,8 @@ Dept keys everywhere: `overview` (Activation Roadmap) · `tools` (Tool Selection
 | `POST /api/kb/search` | — | Dept-scoped FTS (the voice agent's tool) |
 | `GET /api/kb/docs` | — | KB document list |
 | `POST /api/kb/ingest` · `DELETE /api/kb/docs` · `POST /api/kb/seed` | admin | KB management |
-| `POST /api/conversations` · `POST /api/turns` · `PATCH /api/conversations/:id` | — | Call persistence (call-end also triggers a memory update) |
+| `POST /api/conversations` · `POST /api/turns` · `PATCH /api/conversations/:id` | — | Call persistence (call-end also triggers a memory update). The browser sends call-end via `sendBeacon`/`pagehide` so it survives a tab close mid-call. |
+| `POST /api/conversations/sweep` | admin | End conversations stranded in `live` (call-end never arrived) and fold each into memory — safety net for the fire-and-forget end request; idempotent, cron-safe. Body: `{max_age_min?}` (default 30). |
 | `GET /api/conversations[/:id]` · `DELETE /api/conversations/:id` | — (open) | Transcript review / delete — powers the in-app Conversations panel; consider gating before wide rollout |
 | `GET /api/activity` | — | Activity feed + contributor tallies |
 
@@ -159,7 +160,7 @@ Pushing to `main` auto-deploys on Vercel. Gotchas learned the hard way:
 
 ## Key flows (for humans and AI agents)
 
-**Voice call:** `startCall()` in index.html → `/api/token` → WebSocket to AssemblyAI → `session.update` carries: persona system prompt (personas.js) + KB tool + that function's memory (`/api/memory?dept=`, ≤18k chars) + coverage block (`/api/coverage?dept=` — opener greeting + "ask only these open areas") + live page text (recursive iframe `innerText`). Coverage/memory are best-effort: any failure falls back to the plain persona interview. Turns persist fire-and-forget; call-end triggers an incremental memory update server-side.
+**Voice call:** `startCall()` in index.html → `/api/token` → WebSocket to AssemblyAI → `session.update` carries: persona system prompt (personas.js) + KB tool + that function's memory (`/api/memory?dept=`, ≤18k chars) + coverage block (`/api/coverage?dept=` — opener greeting + "ask only these open areas") + live page text (recursive iframe `innerText`). Coverage/memory are best-effort: any failure falls back to the plain persona interview. Turns persist fire-and-forget; call-end (`POST /api/conversations/:id`) triggers an incremental memory update server-side. The client sends call-end via `navigator.sendBeacon` (with a `keepalive` fetch fallback) and on `pagehide`, so a call that ends by closing the tab still records its final status and folds into memory instead of stranding in `live`. `POST /api/conversations/sweep` reaps any that still slip through (and can be run on a cron).
 
 **Version generation** (`lib/versions.js: generateVersion`): gather feedback + transcripts + documents since last version → Claude returns structured find/replace edits (JSON schema output) → applied literally (`indexOf`), visible changes wrapped in `<mark class="kee-rev">` → changelog banner injected → new `dept_versions` row → docs stamped `version_folded` → KB re-seed → memory rebuild. The Sales section nests sub-pages as base64 inside a JSON blob; `explodeFiles/implodeFiles` lets Claude patch inside them.
 
