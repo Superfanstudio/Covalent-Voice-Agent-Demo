@@ -820,6 +820,7 @@ async function show(dept) {
 
   const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()], convos: ["convosPanel", () => renderConvos()] };
   if (dept.startsWith("soon-")) PANELS[dept] = ["soonPanel", () => renderSoon(dept)];
+  else $("soonPanel").classList.remove("show");   // leaving a placeholder page — never leave it lingering under another panel
   if (PANELS[dept]) {
     showOnly("__none__");
     Object.entries(PANELS).forEach(([k, [id]]) => $(id).classList.toggle("show", k === dept));
