@@ -12,14 +12,14 @@ A voice-first, self-updating discovery workbook for **Covalent** (AI-first North
 
 | Feature | What it does |
 |---|---|
-| **Eight living documents** | Each section is a full HTML page, versioned in Supabase (`dept_versions`). Version dropdown per section; changed passages highlighted with a changelog banner attributing every edit to its source. Every operating-model section opens with a compact **activation-timeline strip** (its own confirm → Covalent Kee activation → hires → launch bars), and high-signal sections carry a **discovery roll-up** ("what we now know → how it configures the agents → where the human gates sit" — see ICP/IHP). |
+| **Eight living documents** | Each section is a full HTML page, versioned in Supabase (`dept_versions`). Version dropdown per section, plus a **History** panel (button beside the dropdown) listing what changed in each version and who drove it — the per-edit changelog lives there, lifted off the top of the page; edits inside the document stay highlighted inline. Every operating-model section opens with a compact **activation-timeline strip** (its own confirm → Covalent Kee activation → hires → launch bars), and high-signal sections carry a **discovery roll-up** ("what we now know → how it configures the agents → where the human gates sit" — see ICP/IHP). |
 | **Tool Selection strategy** | Three-tier ladder per category: 1) KeeMakr builds AI-first, 2) KeeMakr + existing AI-native tools, 3) + proven SaaS — with contender chips, statuses (ERP: 3 AI-native finalists shortlisted), CTU as the only learning platform, and Work-OS basics (email suite, comms, Notion, e-sign, AI Notetaker = KeeMakr). |
 | **Covalent Kee (voice agent)** | AssemblyAI Voice Agent with a per-function discovery persona (six questions, ~5 min). She gets the live page text, a dept-scoped knowledge base tool, and that function's memory injected into every call. Green FAB, bottom of every section. |
 | **Progress-aware interviews (coverage)** | Before each call, Fable scores the team's progress against a fixed 6-area rubric per function (`AREAS` in personas.js). Kee opens with "we're about seventy percent there", skips covered areas, and asks **only the open ones**. Design doc: `docs/superpowers/specs/`. |
 | **Feedback** | Per-function comments (browser → Supabase REST with the publishable key). Contributors appear in "Shaped by" chips on the sections they've touched. |
 | **Version generation** | "✦ New version" (access-code gated) has Claude fold all feedback + transcripts + shared documents since the last version into the document as surgical find/replace edits, with `<mark>` highlights and a changelog. KB re-seeds and memory rebuilds automatically. |
 | **Documents** | Upload Word/PDF/text/markdown/images (≤4MB), attributed to a sharer. Raw file stored in Supabase Storage (`shared-docs` bucket), text extracted client-side into the KB, images sent to Claude as vision inputs at generation time. Optional "fold into a new version now". Deleting a document also removes its knowledge-base entry (the KB copy is tagged `upload:<doc_id>`), so Kee stops retrieving content the contributor has removed. |
-| **Agent Mode** | Operator console (KeeMakr: Sne/Raj). Plain-language instruction → Claude stages a **draft** (purple banner, private), preview in place, refine cumulatively, then Approve & publish as the next version — or Discard. |
+| **Agent Mode** | Operator console (KeeMakr: Sne/Raj/Krutin). Plain-language instruction → Claude stages a **draft** (purple banner, private), preview in place, refine cumulatively, then Approve & publish as the next version — or Discard. |
 | **Function memory ("AI brain")** | One living memory document **per function** (keyed by dept in `agent_memory`), maintained by Claude Fable (1M context) from that function's transcripts, feedback, documents, and versions. Updated incrementally after every call, rebuilt after every publish. Injected into that function's voice sessions — ICP calls never see Sales history. |
 | **Activity Log & Conversations** | Unified timeline (comments, calls, document shares, publishes) + contributor leaderboard, plus an in-app Conversations panel for reading transcripts. |
 | **How-to-use guide** | `?` buttons (version bar, mobile topbar, sidebar footer) open a written quick guide + optional voice tour by Kee. |
@@ -119,6 +119,7 @@ Dept keys everywhere: `overview` (Activation Roadmap) · `tools` (Tool Selection
 | `GET /api/token` | — | Single-use AssemblyAI voice token |
 | `GET /api/versions?dept=` · `GET /api/versions/current?dept=&v=` | — | Version list / full HTML |
 | `POST /api/versions/generate` | access code | Fold inputs into a new version (Claude) |
+| `POST /api/versions/publish` | access code | Publish an externally-authored HTML doc as the next version (preserves the seed as v1, reseeds KB + memory). For docs built outside the app. Body: `{dept, html, summary?, created_by?}` |
 | `GET /api/draft?dept=` (header `x-access-code`) | access code | Active Agent Mode draft |
 | `POST /api/draft/propose` · `/approve` · `/discard` | access code | Draft lifecycle |
 | `GET/POST/DELETE /api/docs` | — | List (signed URLs) / upload / delete shared documents |
@@ -155,6 +156,8 @@ Pushing to `main` auto-deploys on Vercel. Gotchas learned the hard way:
 - **Nested `/api/*` paths need the `vercel.json` rewrite** (`/api/:path* → /api/router?p=:path*`). Bracket catch-all files (`api/[...path].js`) silently fail to match multi-segment paths on this project — don't reintroduce them.
 - `maxDuration: 300` is required: version generation and memory rebuilds run 1–3 minutes.
 - Request bodies cap at ~4.5MB on Vercel → document uploads are limited to 4MB (base64 in JSON).
+- **A fire-and-forget request that has a server-side side effect must survive the page being torn down.** Call-end (`POST /api/conversations/:id`) folds the transcript into memory, so a plain `fetch` that dies when the tab closes leaves the call stranded in `live` and the memory never updates. Use `navigator.sendBeacon` (+ `keepalive` fetch fallback) fired on `pagehide`, and back it with a server-side reaper (`POST /api/conversations/sweep`, cron-safe) for the ones that still slip through. Apply the same pattern to any future "on close, persist X" path.
+- **Anything ingested into the KB must be removable by the same handle that created it.** Derived KB copies (document uploads) are tagged `source = upload:<doc_id>` so deleting the source document also deletes its KB rows — otherwise Kee keeps reciting content the contributor removed. Always tag a derived KB row with a stable link back to its source. (Legacy rows tagged plain `upload` predate this and won't auto-clean on delete.)
 
 ---
 
