@@ -10,11 +10,11 @@
 - **Secrets are server-side only.** Browser may see: Supabase publishable key, PostHog token. Never the service-role key, Anthropic key, or `VERSION_ACCESS_CODE` (which is also never committed — this repo is public).
 - **Dept keys:** `supply | icp | ihp | sales | marcom | hr`. New per-function data gets a `dept` column.
 - **Side effects are best-effort:** persistence, KB ingest, memory updates, and analytics must never break the primary action — try/catch and `console.error`.
-- **Claude calls:** `@anthropic-ai/sdk`, streaming + `finalMessage()`, `thinking: {type:"adaptive"}`, structured outputs via `output_config.format`. No `temperature`/`top_p` (400s). Models: `claude-opus-4-8` (generation/drafts), `claude-fable-5` (memory).
+- **Claude calls:** ONLY through `lib/llm.js` `generate()` (OpenRouter, env `OPENROUTER_API_KEY`; JSON-schema output via the `schema` option; images as Anthropic-style base64 blocks). Do not import an Anthropic/OpenAI SDK or call providers directly. Models: `claude-opus-4-8` (generation/drafts), `claude-fable-5` (memory/coverage). Wrap calls with `captureGeneration()` from `lib/posthog.js`.
 
 ## Verify
 
 - Lib changes: `node -e "import('./lib/router.js')"` then restart the dev server (ESM cache).
 - Local run: `ASSEMBLYAI_API_KEY=dummy PORT=3456 node server.js`; without Supabase keys every feature must degrade gracefully (503 + `code`), never crash.
 - DB schema changes: apply to Supabase project `wxividqrrmsbuaxncpsn` AND mirror in `supabase/schema.sql` (keep idempotent).
-- `GET /api/health` reports env/schema readiness.
+- `GET /api/health` reports env/schema readiness. Prod: https://covalent-kee.vercel.app (Vercel project under the fsztpartners team; the `*-fsztpartners.vercel.app` aliases are behind deployment protection).

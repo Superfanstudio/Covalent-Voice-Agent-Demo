@@ -4,3 +4,4 @@ node_modules/
 !.env.example
 .claude/
 .DS_Store
+env
