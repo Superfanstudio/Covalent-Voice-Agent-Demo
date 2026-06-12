@@ -109,6 +109,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);
 .vb-print:hover{background:rgba(40,34,28,.06);color:var(--ink);}
 .vb-print svg{width:14px;height:14px;}
 @media(max-width:880px){.vb-print span{display:none;}.vb-print{padding:6px 9px;}}
+.vb-hist{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:500;
+  color:var(--ink2);cursor:pointer;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;
+  padding:6px 12px;white-space:nowrap;transition:background .14s,color .14s;}
+.vb-hist:hover{background:rgba(40,34,28,.06);color:var(--ink);}
+.vb-hist svg{width:14px;height:14px;}
+@media(max-width:880px){.vb-hist span{display:none;}.vb-hist{padding:6px 9px;}}
 .vb-agent{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:500;
   color:#534ab7;cursor:pointer;background:#f4f3fd;border:1px solid #ddd9f5;border-radius:8px;
   padding:6px 12px;white-space:nowrap;transition:background .14s;}
@@ -263,6 +269,24 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 .modal .m-status{font-size:12.5px;color:var(--ink3);min-height:18px;margin-top:8px;line-height:1.5;}
 .modal .m-status.err{color:var(--rust);}
 .modal .m-status.ok{color:#2f6a4a;}
+/* ---------- Version history ---------- */
+.modal.wide{width:560px;}
+.histlist{max-height:60vh;overflow-y:auto;margin:4px -6px 0;padding:0 6px;}
+.histrow{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);}
+.histrow:first-child{border-top:0;}
+.histrow .hr-badge{flex:0 0 auto;align-self:flex-start;font-size:11px;font-weight:600;letter-spacing:.03em;color:#fff;
+  background:var(--ink3);border-radius:8px;padding:3px 9px;margin-top:1px;}
+.histrow.cur .hr-badge{background:linear-gradient(135deg,#0f6e56,#0a4f3e);}
+.histrow .hr-main{flex:1;min-width:0;}
+.histrow .hr-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
+.histrow .hr-cur{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#0a4f3e;}
+.histrow .hr-meta{font-size:11.5px;color:var(--ink3);}
+.histrow .hr-sum{font-size:13px;color:var(--ink2);line-height:1.5;}
+.histrow .hr-view{flex:0 0 auto;align-self:flex-start;font-family:var(--sans);font-size:12px;font-weight:500;
+  color:var(--rust);background:var(--rustbg);border:1px solid rgba(163,67,45,.25);border-radius:8px;
+  padding:5px 12px;cursor:pointer;white-space:nowrap;transition:background .14s;}
+.histrow .hr-view:hover{background:rgba(163,67,45,.14);}
+.histrow .hr-view:disabled{opacity:.4;cursor:default;}
 .gen-progress{display:none;align-items:center;gap:12px;margin-top:6px;color:var(--ink2);font-size:13px;}
 .gen-progress.on{display:flex;}
 .gen-progress .spinner{width:20px;height:20px;border-width:2px;}
@@ -469,6 +493,10 @@ body.agent-open #agentDrawer{transform:translateX(0);}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         <span>Print / Save PDF</span>
       </button>
+      <button class="vb-hist" id="vbHist" type="button" title="Version history — what changed in each version">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>
+        <span>History</span>
+      </button>
       <select class="vb-select" id="vbSelect" title="Document version"></select>
       <button class="vb-gen" id="vbGen" type="button">✦ New version</button>
     </div>
@@ -609,6 +637,18 @@ body.agent-open #agentDrawer{transform:translateX(0);}
     </div>
   </div>
 
+  <!-- Version history -->
+  <div class="modal-scrim" id="histModal">
+    <div class="modal wide">
+      <h2 id="histTitle">Version history</h2>
+      <p id="histDesc">Every published version of this function, newest first — what changed and who shaped it. Open any version to view it.</p>
+      <div class="histlist" id="histList"></div>
+      <div class="m-actions" style="margin-top:16px;">
+        <button class="m-cancel" id="histClose" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
 <script type="module">
 import { PERSONAS } from "/personas.js";
 
@@ -746,6 +786,19 @@ async function getVersionList(dept) {
   return versionLists[dept];
 }
 
+// The published HTML embeds a "what changed" changelog banner at the top of
+// <body>. It's useful history but hoards the page, so we lift it out on render
+// and surface it through the History button instead. The banner's <style> block
+// also defines mark.kee-rev (the change highlights), so we re-inject that rule.
+const KEE_REV_CSS = "<style>mark.kee-rev{background:#fbe9a9;border-bottom:2px solid #d9a514;border-radius:3px;padding:0 2px;cursor:help}</style>";
+function stripChangelog(html) {
+  if (!html || html.indexOf('id="keeChangelog"') === -1) return html;
+  const out = html.replace(/<div class="kee-changelog" id="keeChangelog">[\s\S]*?<\/div>\s*<\/div>/, "");
+  // keep highlight styling alive now that the banner's <style> is gone
+  const m = out.match(/<body[^>]*>/);
+  return m ? out.replace(m[0], m[0] + KEE_REV_CSS) : KEE_REV_CSS + out;
+}
+
 async function getHtml(dept, version) {
   const key = `${dept}@${version}`;
   if (htmlCache[key]) return htmlCache[key];
@@ -753,8 +806,8 @@ async function getHtml(dept, version) {
     const r = await fetch(`/api/versions/current?dept=${dept}&v=${version}`);
     if (r.ok) {
       const j = await r.json();
-      htmlCache[key] = j.html;
-      return j.html;
+      htmlCache[key] = stripChangelog(j.html);
+      return htmlCache[key];
     }
   } catch { /* fall through to artifact payload */ }
   const html = await loadFallback(dept);
@@ -859,8 +912,7 @@ async function show(dept) {
   closeNav();
 }
 
-$("vbSelect").addEventListener("change", async () => {
-  const v = Number($("vbSelect").value);
+async function switchVersion(v) {
   selectedVersion[current] = v;
   renderVersionBar(current);
   loader.style.display = "flex";
@@ -870,6 +922,38 @@ $("vbSelect").addEventListener("change", async () => {
   if (f.dataset.ready) reveal();
   else { f.addEventListener("load", () => { f.dataset.ready = "1"; reveal(); }, { once: true }); setTimeout(reveal, 1500); }
   track("version_viewed", { viewed_version: v });
+}
+$("vbSelect").addEventListener("change", () => switchVersion(Number($("vbSelect").value)));
+
+/* ====== Version history ===================================================== */
+function openHistory() {
+  if (NO_DOC(current)) return;
+  const list = (versionLists[current] || []).slice().sort((a, b) => b.version - a.version);
+  $("histTitle").textContent = `${META[current]} — version history`;
+  $("histList").innerHTML = list.map((v) => {
+    const isCur = v.version === latestVersion[current];
+    const isShown = v.version === selectedVersion[current];
+    const meta = [v.created_at ? String(v.created_at).slice(0, 10) : null, v.created_by ? "by " + esc(v.created_by) : null].filter(Boolean).join(" · ");
+    const sum = v.change_summary ? esc(v.change_summary) : "—";
+    return `<div class="histrow${isCur ? " cur" : ""}">
+      <span class="hr-badge">v${v.version}</span>
+      <div class="hr-main">
+        <div class="hr-top">${isCur ? `<span class="hr-cur">Current</span>` : ""}${meta ? `<span class="hr-meta">${meta}</span>` : ""}</div>
+        <div class="hr-sum">${sum}</div>
+      </div>
+      <button class="hr-view" data-v="${v.version}"${isShown ? " disabled" : ""}>${isShown ? "Viewing" : "View"}</button>
+    </div>`;
+  }).join("") || `<p style="color:var(--ink3)">No version history yet.</p>`;
+  $("histModal").classList.add("open");
+}
+$("vbHist").addEventListener("click", openHistory);
+$("histClose").addEventListener("click", () => $("histModal").classList.remove("open"));
+$("histModal").addEventListener("click", (e) => { if (e.target.id === "histModal") $("histModal").classList.remove("open"); });
+$("histList").addEventListener("click", (e) => {
+  const btn = e.target.closest(".hr-view");
+  if (!btn || btn.disabled) return;
+  $("histModal").classList.remove("open");
+  switchVersion(Number(btn.dataset.v));
 });
 
 /* ====== Print / Save PDF ===================================================== */
