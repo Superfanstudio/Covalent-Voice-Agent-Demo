@@ -1,6 +1,6 @@
 # Covalent Operating System — Living Discovery Workbook
 
-A voice-first, self-updating discovery workbook for **Covalent** (AI-first North-America aesthetics distribution), built by **KeeMakr**. Six operating-model documents — Supply Chain, ICP & Persona Discovery, Ideal Hiring Profile, Sales, Marketing, HR — that the team's input continuously reshapes: every feedback comment, voice interview with the AI agent ("Covalent Kee"), and shared source document feeds the next published version of each function.
+A voice-first, self-updating discovery workbook for **Covalent** (AI-first North-America aesthetics distribution), built by **KeeMakr**. Eight living sections — the **Activation Roadmap** (the landing page) and **Tool Selection** up top, plus six operating-model documents (Ops — Supply Chain & Logistics, ICP & Persona Discovery, Ideal Hiring Profile, Sales, Marketing, HR) — that the team's input continuously reshapes: every feedback comment, voice interview with the AI agent ("Covalent Kee"), and shared source document feeds the next published version of each section. Placeholder "Up Next" sections (Finance; Legal, Compliance & Governance; FDA/Regulatory; R&D) stage the functions discovery hasn't reached yet.
 
 **Live:** https://covalent-kee.vercel.app · `/demo` (original v1 voice demo, unlinked) · `/admin` (operator console, unlinked) · `/api/health` (readiness check)
 
@@ -12,7 +12,8 @@ A voice-first, self-updating discovery workbook for **Covalent** (AI-first North
 
 | Feature | What it does |
 |---|---|
-| **Six living documents** | Each function is a full HTML page, versioned in Supabase (`dept_versions`). Version dropdown per function; changed passages highlighted with a changelog banner attributing every edit to its source. |
+| **Eight living documents** | Each section is a full HTML page, versioned in Supabase (`dept_versions`). Version dropdown per section; changed passages highlighted with a changelog banner attributing every edit to its source. Every operating-model section opens with a compact **activation-timeline strip** (its own confirm → Covalent Kee activation → hires → launch bars), and high-signal sections carry a **discovery roll-up** ("what we now know → how it configures the agents → where the human gates sit" — see ICP/IHP). |
+| **Tool Selection strategy** | Three-tier ladder per category: 1) KeeMakr builds AI-first, 2) KeeMakr + existing AI-native tools, 3) + proven SaaS — with contender chips, statuses (ERP: 3 AI-native finalists shortlisted), CTU as the only learning platform, and Work-OS basics (email suite, comms, Notion, e-sign, AI Notetaker = KeeMakr). |
 | **Covalent Kee (voice agent)** | AssemblyAI Voice Agent with a per-function discovery persona (six questions, ~5 min). She gets the live page text, a dept-scoped knowledge base tool, and that function's memory injected into every call. Green FAB, bottom of every section. |
 | **Progress-aware interviews (coverage)** | Before each call, Fable scores the team's progress against a fixed 6-area rubric per function (`AREAS` in personas.js). Kee opens with "we're about seventy percent there", skips covered areas, and asks **only the open ones**. Design doc: `docs/superpowers/specs/`. |
 | **Feedback** | Per-function comments (browser → Supabase REST with the publishable key). Contributors appear in "Shaped by" chips on the sections they've touched. |
@@ -68,7 +69,7 @@ personas.js           Kee's voice personas (6 interviewers + how-to guide) + ARE
 docs/                 Design decisions/specs (e.g. the coverage feature).
 server.js             Local dev server (mirrors Vercel routing exactly).
 vercel.json           Rewrites (/admin, /demo, /api/:path* → /api/router) + 300s maxDuration.
-data/depts.json       v1 seed payload: base64 HTML per function (offline fallback too).
+data/depts.json       v1 seed payload: base64 HTML per section — 8 keys incl. overview + tools (offline fallback too).
 api/
   token.js            AssemblyAI token minting (filesystem precedence over the rewrite).
   router.js           Catch-all Vercel function → lib/router.js.
@@ -105,7 +106,7 @@ supabase/schema.sql   Full idempotent schema (already applied to the live projec
 | `shared_documents` | Uploaded source docs (raw file in `shared-docs` Storage bucket) | Server |
 | `agent_memory` | One living memory document per function (`id` = dept key) | Server (Claude Fable) |
 
-Dept keys everywhere: `supply` · `icp` · `ihp` · `sales` · `marcom` · `hr`.
+Dept keys everywhere: `overview` (Activation Roadmap) · `tools` (Tool Selection) · `supply` (Ops — Supply Chain & Logistics) · `icp` · `ihp` · `sales` · `marcom` (Marketing) · `hr`. Product naming: always "Covalent Kee", never bare "Kee"; "Marketing", never "Marcom".
 
 ---
 
@@ -171,10 +172,10 @@ Pushing to `main` auto-deploys on Vercel. Gotchas learned the hard way:
 1. **One router.** Every `/api/*` endpoint lives in `lib/router.js` and must work identically under `server.js` and Vercel. Never put logic in `api/*.js` beyond request normalization.
 2. **No frameworks, no build.** The frontend is hand-written vanilla JS in `index.html` (single module script). Match its patterns: `$()` helper, drawer components, `track()` for PostHog.
 3. **Secrets stay server-side.** The browser may only ever see the Supabase *publishable* key and the PostHog token (via `/api/config`). The access code is checked server-side only.
-4. **Dept keys are the spine.** Any new data should carry a `dept` column with the six keys; `null`/absent means global.
+4. **Dept keys are the spine.** Any new data should carry a `dept` column with the registered keys (update the check constraints in Supabase + schema.sql when adding a section); `null`/absent means global.
 5. **Best-effort side effects.** Persistence, analytics, KB ingest, and memory updates must never break the primary user action — wrap them in try/catch and log.
 6. **Claude usage:** ALL server-side LLM calls go through `lib/llm.js` (`generate()`), which speaks OpenAI-compatible Chat Completions to **OpenRouter** with mapped Claude slugs and optional JSON-schema output. Don't import an Anthropic SDK or call providers directly — add capabilities to `lib/llm.js`. Generation/drafts: `claude-opus-4-8`. Memory/coverage: `claude-fable-5`. Wrap each call with `captureGeneration()` (lib/posthog.js) for LLM analytics.
-7. **The artifact payload is replaceable.** A new "Covalent_Operating_System" rev = swap the base64 blob in `data/depts.json`; everything else keys off `dept_versions` at runtime.
+7. **The seed payload is replaceable — until a section has published versions.** Updating a section's base64 blob in `data/depts.json` changes its v1 (used while `dept_versions` has no rows for it). Once versions are published (e.g. IHP), the DB is canonical and content changes must flow through version generation or Agent Mode.
 
 ---
 
