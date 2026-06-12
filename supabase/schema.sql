@@ -72,7 +72,7 @@ $$;
 -- + shared documents.
 create table if not exists dept_versions (
   id              uuid primary key default gen_random_uuid(),
-  dept            text not null check (dept in ('overview','supply','icp','ihp','sales','marcom','hr')),
+  dept            text not null check (dept in ('overview','tools','supply','icp','ihp','sales','marcom','hr')),
   version         int  not null,
   html            text not null,                  -- full section HTML for this version
   change_summary  text,                           -- human-readable "what changed"
@@ -88,7 +88,7 @@ alter table dept_versions enable row level security;
 -- ---------- Shared source documents -----------------------------------------
 create table if not exists shared_documents (
   id             uuid primary key default gen_random_uuid(),
-  dept           text not null check (dept in ('overview','supply','icp','ihp','sales','marcom','hr')),
+  dept           text not null check (dept in ('overview','tools','supply','icp','ihp','sales','marcom','hr')),
   title          text not null,
   shared_by      text,                              -- who shared the information
   file_name      text not null,
@@ -106,7 +106,7 @@ alter table shared_documents enable row level security;
 -- Operator-directed edits staged for review before publishing as a version.
 create table if not exists dept_drafts (
   id             uuid primary key default gen_random_uuid(),
-  dept           text not null check (dept in ('overview','supply','icp','ihp','sales','marcom','hr')),
+  dept           text not null check (dept in ('overview','tools','supply','icp','ihp','sales','marcom','hr')),
   base_version   int not null,                     -- published version the draft builds on
   html           text not null,                    -- draft document (with change marks)
   change_summary text,
