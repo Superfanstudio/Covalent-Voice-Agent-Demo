@@ -56,6 +56,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);
 .nav-label{font-size:14px;font-weight:500;line-height:1.2;}
 .nav-desc{font-size:11.5px;color:var(--ink3);line-height:1.3;}
 .nav-item.active .nav-desc{color:var(--ink2);}
+.nav-item.soon{opacity:.62;}
+.nav-item.soon:hover{opacity:.9;}
+.nav-item.soon .nav-dot{background:transparent;border:1.5px dashed var(--line2);}
 
 .side-footer{padding:14px 16px 18px;border-top:1px solid var(--line);}
 .kee-cta{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
@@ -412,7 +415,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 <a class="nav-item" data-dept="tools" href="#tools"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Tool Selection</span><span class="nav-desc">Kee as OS vs. AI-native tools (ERP, WMS, ecom)</span></span><span class="nav-count" data-dept="tools">0</span></a>
 </div>
       <div class="nav-group"><div class="nav-group-label">Discovery</div>
-<a class="nav-item" data-dept="supply" href="#supply"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Supply Chain (Ops)</span><span class="nav-desc">Supply chain operations model</span></span><span class="nav-count" data-dept="supply">0</span></a>
+<a class="nav-item" data-dept="supply" href="#supply"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Ops</span><span class="nav-desc">Supply chain &amp; logistics operations</span></span><span class="nav-count" data-dept="supply">0</span></a>
 <a class="nav-item" data-dept="icp" href="#icp"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">ICP &amp; Persona Discovery</span><span class="nav-desc">Buyer archetypes &amp; persona intelligence</span></span><span class="nav-count" data-dept="icp">0</span></a>
 <a class="nav-item" data-dept="ihp" href="#ihp"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Ideal Hiring Profile</span><span class="nav-desc">Role archetypes &amp; assessment rubric</span></span><span class="nav-count" data-dept="ihp">0</span></a>
 </div>
@@ -420,6 +423,12 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 <a class="nav-item" data-dept="sales" href="#sales"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Sales</span><span class="nav-desc">Workshop — function &amp; org views</span></span><span class="nav-count" data-dept="sales">0</span></a>
 <a class="nav-item" data-dept="marcom" href="#marcom"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Marketing</span><span class="nav-desc">AI-native marketing operating model</span></span><span class="nav-count" data-dept="marcom">0</span></a>
 <a class="nav-item" data-dept="hr" href="#hr"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">HR</span><span class="nav-desc">AI-native HR operating model</span></span><span class="nav-count" data-dept="hr">0</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-label">Up Next — Discovery</div>
+<a class="nav-item soon" data-dept="soon-finance" href="#soon-finance"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Finance</span><span class="nav-desc">Planned — next week</span></span></a>
+<a class="nav-item soon" data-dept="soon-legal" href="#soon-legal"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Legal, Compliance &amp; Governance</span><span class="nav-desc">Planned — next week</span></span></a>
+<a class="nav-item soon" data-dept="soon-regulatory" href="#soon-regulatory"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">FDA / Regulatory</span><span class="nav-desc">Planned — sequences in</span></span></a>
+<a class="nav-item soon" data-dept="soon-rnd" href="#soon-rnd"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">R&amp;D Pipeline</span><span class="nav-desc">Planned — likely post-launch</span></span></a>
 </div>
 <div class="nav-group"><div class="nav-group-label">Workbook</div>
 <a class="nav-item" data-dept="docs" href="#docs"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Documents</span><span class="nav-desc">Shared material &amp; each agent's knowledge base</span></span></a>
@@ -430,7 +439,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
     <div class="side-footer">
       <button class="howto-btn" id="howtoBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        How to use — ask Kee
+        How to use — ask Covalent Kee
       </button>
       <div class="pk">Powered by <b>KeeMakr</b></div>
       <div class="rev">Rev. 2026-06-09b</div>
@@ -468,6 +477,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
       <div class="activity" id="activityPanel"></div>
       <div class="activity" id="docsPanel"></div>
       <div class="activity" id="convosPanel"></div>
+      <div class="activity" id="soonPanel"></div>
       <button class="kee-fab" id="keeCta" type="button" aria-label="Talk to Covalent Kee">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
         <span>Covalent Kee</span>
@@ -604,8 +614,15 @@ import { PERSONAS } from "/personas.js";
 const RATE = 24_000;
 console.log("%cCovalent Kee build: ring-buffer-playback", "color:#9a3412;font-weight:600");
 const DEPTS = ["overview", "tools", "supply", "icp", "ihp", "sales", "marcom", "hr"];
-const META = { overview: "Activation Roadmap", tools: "Tool Selection", supply: "Supply Chain (Ops)", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents", convos: "Conversations" };
-const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs" || d === "convos";   // pseudo-sections: no versions, no feedback, no Kee
+const META = { overview: "Activation Roadmap", tools: "Tool Selection", supply: "Ops — Supply Chain & Logistics", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents", convos: "Conversations",
+  "soon-finance": "Finance", "soon-legal": "Legal, Compliance & Governance", "soon-regulatory": "FDA / Regulatory", "soon-rnd": "R&D Pipeline" };
+const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs" || d === "convos" || d.startsWith("soon-");   // pseudo-sections: no versions, no feedback, no Kee
+const SOON_INFO = {
+  "soon-finance": ["Billing, AR/AP, reporting, forecasting — the finance operating model and its Covalent Kee capability.", "Confirm next per the Activation Roadmap; first fractional finance / controller targeted for September."],
+  "soon-legal": ["Contracts, Sunshine Act / anti-kickback compliance, decision rights, board cadence — one control function.", "Runs the same five-gate sequence; Covalent Kee handles monitoring, audit trails and reporting workflows; judgment stays human."],
+  "soon-regulatory": ["Device & consumable registration paths, 510(k) landscape, labeling, post-market monitoring.", "Sequences in with discovery; hybrid model with regulatory counsel."],
+  "soon-rnd": ["Device / consumable pipeline intake, landscape scans, screening and diligence workflows.", "Likely sequences after soft launch."],
+};
 const PRESET_NAMES = [["Dr. M", "Covalent"], ["Manny", "Covalent"], ["Keith", "Covalent"], ["Sne", "KeeMakr"], ["Raj", "KeeMakr"]];
 
 const $ = (id) => document.getElementById(id);
@@ -802,6 +819,7 @@ async function show(dept) {
   renderVersionBar(dept);
 
   const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()], convos: ["convosPanel", () => renderConvos()] };
+  if (dept.startsWith("soon-")) PANELS[dept] = ["soonPanel", () => renderSoon(dept)];
   if (PANELS[dept]) {
     showOnly("__none__");
     Object.entries(PANELS).forEach(([k, [id]]) => $(id).classList.toggle("show", k === dept));
@@ -1352,7 +1370,7 @@ async function startCall() {
     switch (m.type) {
       case "session.ready":
         ready = true;
-        setKeeStatus("live", "Connected — say hi to Kee");
+        setKeeStatus("live", "Connected — say hi to Covalent Kee");
         persistStart(callDept);
         track("call_started", { agent: callDept, voice: $("keeVoice").value });
         break;
@@ -1524,7 +1542,7 @@ const ACT_ICONS = {
   version: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.2L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.6-.8z"/></svg>',
   document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
 };
-const ACT_VERBS = { feedback: "left feedback on", call: "talked to Kee about", version: "published a new version of", document: "shared a document on" };
+const ACT_VERBS = { feedback: "left feedback on", call: "talked to Covalent Kee about", version: "published a new version of", document: "shared a document on" };
 
 function actDay(iso) {
   const d = new Date(iso), now = new Date();
@@ -1588,9 +1606,9 @@ async function renderActivity() {
   }
   el.innerHTML = `<div class="act-wrap">
     <h1 class="act-h">Activity Log</h1>
-    <p class="act-sub">Every contribution to the live workbook — feedback comments, voice calls with Kee, and published versions. This is what feeds each function's next version.${data.partial ? " <em>(Showing feedback only — full history appears once the server is connected.)</em>" : ""}</p>
+    <p class="act-sub">Every contribution to the live workbook — feedback comments, voice calls with Covalent Kee, and published versions. This is what feeds each function's next version.${data.partial ? " <em>(Showing feedback only — full history appears once the server is connected.)</em>" : ""}</p>
     ${people ? `<div class="act-people">${people}</div>` : ""}
-    <div class="act-feed">${feed || `<div class="act-empty">No activity yet.<br>Leave the first comment or take a call with Kee — it'll show up here.</div>`}</div>
+    <div class="act-feed">${feed || `<div class="act-empty">No activity yet.<br>Leave the first comment or take a call with Covalent Kee — it'll show up here.</div>`}</div>
   </div>`;
 }
 
@@ -2023,14 +2041,14 @@ async function loadKbList() {
 // Conversations: every voice call, by function, with on-demand transcripts.
 async function renderConvos() {
   const el = $("convosPanel");
-  el.innerHTML = `<div class="act-wrap"><h1 class="act-h">Conversations</h1><p class="act-sub">Every voice discovery call with Kee, grouped by function. Click a call to read its transcript. Each one feeds that function's memory.</p><div id="convoList"><div class="act-empty">Loading…</div></div></div>`;
+  el.innerHTML = `<div class="act-wrap"><h1 class="act-h">Conversations</h1><p class="act-sub">Every voice discovery call with Covalent Kee, grouped by function. Click a call to read its transcript. Each one feeds that function's memory.</p><div id="convoList"><div class="act-empty">Loading…</div></div></div>`;
   const list = $("convoList");
   try {
     const r = await fetch("/api/conversations");
     if (!r.ok) { list.innerHTML = `<div class="act-empty">Conversations need the server connected.</div>`; return; }
     const { conversations } = await r.json();
     const real = (conversations || []).filter((c) => (c.turns || 0) > 0);
-    if (!real.length) { list.innerHTML = `<div class="act-empty">No conversations yet. Start a call with Kee on any function.</div>`; return; }
+    if (!real.length) { list.innerHTML = `<div class="act-empty">No conversations yet. Start a call with Covalent Kee on any function.</div>`; return; }
     const byDept = {};
     for (const c of real) (byDept[c.dept] = byDept[c.dept] || []).push(c);
     list.innerHTML = DEPTS.filter((d) => byDept[d]).map((dept) => `
@@ -2080,6 +2098,21 @@ async function renderConvos() {
       } catch { box.innerHTML = `<div class="act-empty">Couldn't load transcript.</div>`; }
     });
   } catch { list.innerHTML = `<div class="act-empty">Couldn't load conversations.</div>`; }
+}
+
+/* ====== "Up next" placeholder sections ====================================== */
+function renderSoon(key) {
+  const [what, plan] = SOON_INFO[key] || ["", ""];
+  $("soonPanel").innerHTML = `<div class="act-wrap" style="max-width:640px;text-align:center;padding-top:60px">
+    <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:10px">Up next — discovery</div>
+    <h1 class="act-h" style="margin-bottom:10px">${esc(META[key] || "")}</h1>
+    <p style="font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:8px">${esc(what)}</p>
+    <p style="font-size:13px;color:var(--ink3);line-height:1.6;margin-bottom:22px">${esc(plan)}</p>
+    <div style="display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 20px;font-size:13px;color:var(--ink2);line-height:1.6;text-align:left">
+      Discovery for this function hasn't been sequenced yet — it runs the same five-gate motion as every other function.<br>
+      <b>Have input already?</b> Leave it on the <a href="#overview" style="color:var(--rust);font-weight:600">Activation Roadmap</a> (feedback or a call with Covalent Kee), or share a document in the <a href="#docs" style="color:var(--rust);font-weight:600">Documents</a> tab — it'll be waiting when this section opens.
+    </div>
+  </div>`;
 }
 
 /* ====== Shell wiring ======================================================== */
