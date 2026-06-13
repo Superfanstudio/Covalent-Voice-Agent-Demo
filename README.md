@@ -19,6 +19,7 @@ A voice-first, self-updating discovery workbook for **Covalent** (AI-first North
 | **Feedback** | Per-function comments (browser → Supabase REST with the publishable key). Contributors appear in "Shaped by" chips on the sections they've touched. |
 | **Version generation** | "✦ New version" (access-code gated) has Claude fold all feedback + transcripts + shared documents since the last version into the document as surgical find/replace edits, with `<mark>` highlights and a changelog. KB re-seeds and memory rebuilds automatically. |
 | **Documents** | Upload Word/PDF/text/markdown/images (≤4MB), attributed to a sharer. Raw file stored in Supabase Storage (`shared-docs` bucket), text extracted client-side into the KB, images sent to Claude as vision inputs at generation time. Optional "fold into a new version now". Deleting a document also removes its knowledge-base entry (the KB copy is tagged `upload:<doc_id>`), so Kee stops retrieving content the contributor has removed. |
+| **Finance simulator & scenarios** | The Finance section hosts an interactive **AI-Native Org Simulator** (`finance-sim.html`) instead of a versioned doc. A start screen offers the **base template** or anyone's **saved scenario**; open one, tweak the sliders, and **save your own version** (attributed to you, forked via `based_on`). A selector switches between everyone's versions. Scenarios live in `sim_scenarios`; the shell ↔ simulator talk over postMessage. |
 | **Agent Mode** | Operator console (KeeMakr: Sne/Raj/Krutin). Plain-language instruction → Claude stages a **draft** (purple banner, private), preview in place, refine cumulatively, then Approve & publish as the next version — or Discard. |
 | **Function memory ("AI brain")** | One living memory document **per function** (keyed by dept in `agent_memory`), maintained by Claude Fable (1M context) from that function's transcripts, feedback, documents, and versions. Updated incrementally after every call, rebuilt after every publish. Injected into that function's voice sessions — ICP calls never see Sales history. |
 | **Activity Log & Conversations** | Unified timeline (comments, calls, document shares, publishes) + contributor leaderboard, plus an in-app Conversations panel for reading transcripts. |
@@ -66,6 +67,7 @@ index.html            The Operating System shell (main page). All shell UI + voi
 demo.html             Original v1 two-agent voice demo — still served at /demo on Vercel, unlinked from the nav.
 admin.html            Admin console (transcripts, KB management, seeding) — served at /admin on Vercel, unlinked.
 personas.js           Kee's voice personas (6 interviewers + how-to guide) + AREAS coverage rubric.
+finance-sim.html      The Finance AI-Native Org Simulator (interactive tool). Served static; hosted in the Finance section's iframe. Talks to the shell over postMessage (get/apply scenario state).
 docs/                 Design decisions/specs (e.g. the coverage feature).
 server.js             Local dev server (mirrors Vercel routing exactly).
 vercel.json           Rewrites (/admin, /demo, /api/:path* → /api/router) + 300s maxDuration.
@@ -79,6 +81,7 @@ lib/
   versions.js         Version read/list, Claude generation, Agent Mode draft lifecycle.
   memory.js           Per-function memory: incremental update + full rebuild (Fable).
   coverage.js         Team-level coverage vs the AREAS rubric → percent + open areas + spoken opener.
+  scenarios.js        Saved simulator scenarios (list/get/create) — the Finance simulator's per-contributor versions.
   docs.js             Document upload/list/delete/download, Storage bucket, fold tracking. Upload ingests text into the KB tagged `upload:<doc_id>`; delete removes that KB entry too.
   kb.js               Chunking (~800 chars) + ingest + search_kb RPC.
   conversations.js    Conversation/turn persistence + reapStale (end calls stranded in `live`, for the sweep endpoint).
@@ -105,6 +108,7 @@ supabase/schema.sql   Full idempotent schema (already applied to the live projec
 | `dept_drafts` | Agent Mode drafts (draft → published/discarded) | Server |
 | `shared_documents` | Uploaded source docs (raw file in `shared-docs` Storage bucket) | Server |
 | `agent_memory` | One living memory document per function (`id` = dept key) | Server (Claude Fable) |
+| `sim_scenarios` | Saved simulator runs (`tool`, `name`, `created_by`, `based_on` fork lineage, `state` jsonb) — powers the Finance simulator's "open someone's version, tweak, save your own" | Server |
 
 Dept keys everywhere: `overview` (Activation Roadmap) · `tools` (Tool Selection) · `supply` (Ops — Supply Chain & Logistics) · `icp` · `ihp` · `sales` · `marcom` (Marketing) · `hr`. Product naming: always "Covalent Kee", never bare "Kee"; "Marketing", never "Marcom".
 
@@ -132,6 +136,7 @@ Dept keys everywhere: `overview` (Activation Roadmap) · `tools` (Tool Selection
 | `POST /api/conversations/sweep` | admin | End conversations stranded in `live` (call-end never arrived) and fold each into memory — safety net for the fire-and-forget end request; idempotent, cron-safe. Body: `{max_age_min?}` (default 30). |
 | `GET /api/conversations[/:id]` · `DELETE /api/conversations/:id` | — (open) | Transcript review / delete — powers the in-app Conversations panel; consider gating before wide rollout |
 | `GET /api/activity` | — | Activity feed + contributor tallies |
+| `GET /api/scenarios?tool=` · `GET /api/scenarios/:id` · `POST /api/scenarios` | — | Saved simulator scenarios: list (lightweight) / one (full state) / save a version. Body: `{tool, name, created_by, based_on?, state}` |
 
 Auth modes: **admin** = `x-admin-password` header vs `ADMIN_PASSWORD` env (open when unset, e.g. localhost). **access code** = `access_code` in body (or `x-access-code` header) vs `VERSION_ACCESS_CODE` env — never hardcoded in the repo.
 

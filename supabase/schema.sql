@@ -131,3 +131,20 @@ create table if not exists agent_memory (
   updated_at timestamptz not null default now()
 );
 alter table agent_memory enable row level security;
+
+-- ---------- Saved simulator scenarios ---------------------------------------
+-- Inputs for one run of an interactive tool (e.g. the Finance AI-Native Org
+-- Simulator), saved by a contributor and optionally forked from another's via
+-- `based_on`. The simulator's own defaults are the implicit "base template";
+-- every row here is someone's saved version. `state` is the tool's input bag.
+create table if not exists sim_scenarios (
+  id          uuid primary key default gen_random_uuid(),
+  tool        text not null default 'finance_org',  -- which simulator this belongs to
+  name        text not null,
+  created_by  text,                                 -- contributor name (from the OS name picker)
+  based_on    uuid references sim_scenarios(id) on delete set null,  -- parent version it was forked from
+  state       jsonb not null,                       -- the simulator inputs that define the scenario
+  created_at  timestamptz not null default now()
+);
+create index if not exists sim_scenarios_tool_idx on sim_scenarios (tool, created_at desc);
+alter table sim_scenarios enable row level security;

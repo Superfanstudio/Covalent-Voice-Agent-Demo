@@ -318,6 +318,43 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 .vb-chip:nth-child(3n+1) i{background:linear-gradient(135deg,#8a6d1d,#6b540f);}
 @media(max-width:1080px){.vb-contrib{display:none;}}
 
+/* ---------- Finance simulator (scenarios) ---------- */
+/* In sim mode the panel goes full-bleed (no scroll padding) so the iframe fills it. */
+#financePanel.fin-simmode{padding:0;overflow:hidden;display:flex;flex-direction:column;}
+.fin-bar{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line);
+  background:var(--panel2);flex-wrap:wrap;}
+.fin-bar .fb-on{font-size:12px;color:var(--ink3);}
+.fin-bar .fb-on b{color:var(--ink);font-weight:600;}
+.fin-bar .fb-sp{flex:1;}
+.fin-bar select{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line2);border-radius:8px;padding:6px 9px;cursor:pointer;max-width:260px;}
+.fin-bar button{font-family:var(--sans);font-size:12.5px;font-weight:500;cursor:pointer;border-radius:8px;
+  padding:6px 13px;white-space:nowrap;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);transition:background .14s;}
+.fin-bar button:hover{background:rgba(40,34,28,.06);color:var(--ink);}
+.fin-bar button.fb-save{background:linear-gradient(135deg,var(--teal),#0a4f3e);border:0;color:#fff;}
+.fin-bar button.fb-save:hover{opacity:.92;}
+.fin-frame{flex:1;width:100%;border:0;background:#fff;}
+/* start screen */
+.fin-start{max-width:880px;margin:0 auto;}
+.fin-eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);font-weight:600;}
+.fin-h{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.01em;margin:10px 0 6px;}
+.fin-sub{font-size:14px;color:var(--ink2);line-height:1.55;margin:0 0 24px;max-width:660px;}
+.fin-lbl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:22px 0 10px;}
+.fin-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
+  background:var(--panel);border:1px solid var(--line2);border-radius:13px;padding:16px 18px;margin-bottom:10px;
+  transition:border-color .14s,box-shadow .14s,transform .14s;}
+.fin-card:hover{border-color:var(--teal);box-shadow:0 8px 24px rgba(20,16,12,.07);transform:translateY(-1px);}
+.fin-card.base{border-left:4px solid var(--teal);}
+.fin-card .fc-ic{width:38px;height:38px;flex:0 0 auto;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:var(--tealbg);color:#0a4f3e;}
+.fin-card .fc-tx{flex:1;min-width:0;}
+.fin-card .fc-t{display:block;font-size:15px;font-weight:600;color:var(--ink);}
+.fin-card .fc-m{display:block;font-size:12.5px;color:var(--ink3);margin-top:3px;}
+.fin-card .fc-go{flex:0 0 auto;color:var(--ink3);font-size:18px;}
+.fin-empty{font-size:13px;color:var(--ink3);padding:6px 2px 0;font-style:italic;}
+.fin-avatar{width:20px;height:20px;border-radius:50%;font-size:9.5px;font-weight:600;color:#fff;flex:0 0 auto;
+  display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--rust),#7e3220);vertical-align:middle;margin-right:5px;}
+
 /* ---------- Activity log ---------- */
 .activity{position:absolute;inset:0;overflow-y:auto;padding:30px 26px 90px;opacity:0;pointer-events:none;transition:opacity .2s;}
 .activity.show{opacity:1;pointer-events:auto;}
@@ -448,8 +485,10 @@ body.agent-open #agentDrawer{transform:translateX(0);}
 <a class="nav-item" data-dept="marcom" href="#marcom"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Marketing</span><span class="nav-desc">AI-native marketing operating model</span></span><span class="nav-count" data-dept="marcom">0</span></a>
 <a class="nav-item" data-dept="hr" href="#hr"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">HR</span><span class="nav-desc">AI-native HR operating model</span></span><span class="nav-count" data-dept="hr">0</span></a>
 </div>
+<div class="nav-group"><div class="nav-group-label">Planning</div>
+<a class="nav-item" data-dept="finance" href="#finance"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Finance</span><span class="nav-desc">AI-native org &amp; cost simulator</span></span></a>
+</div>
 <div class="nav-group"><div class="nav-group-label">Up Next — Discovery</div>
-<a class="nav-item soon" data-dept="soon-finance" href="#soon-finance"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Finance</span><span class="nav-desc">Planned — next week</span></span></a>
 <a class="nav-item soon" data-dept="soon-legal" href="#soon-legal"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">Legal, Compliance &amp; Governance</span><span class="nav-desc">Planned — next week</span></span></a>
 <a class="nav-item soon" data-dept="soon-regulatory" href="#soon-regulatory"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">FDA / Regulatory</span><span class="nav-desc">Planned — sequences in</span></span></a>
 <a class="nav-item soon" data-dept="soon-rnd" href="#soon-rnd"><span class="nav-dot"></span><span class="nav-text"><span class="nav-label">R&amp;D Pipeline</span><span class="nav-desc">Planned — likely post-launch</span></span></a>
@@ -505,6 +544,7 @@ body.agent-open #agentDrawer{transform:translateX(0);}
       <div class="activity" id="activityPanel"></div>
       <div class="activity" id="docsPanel"></div>
       <div class="activity" id="convosPanel"></div>
+      <div class="activity" id="financePanel"></div>
       <div class="activity" id="soonPanel"></div>
       <button class="kee-fab" id="keeCta" type="button" aria-label="Talk to Covalent Kee">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
@@ -650,17 +690,30 @@ body.agent-open #agentDrawer{transform:translateX(0);}
     </div>
   </div>
 
+  <!-- Save a simulator scenario -->
+  <div class="modal-scrim" id="scenModal">
+    <div class="modal">
+      <h2>Save this scenario</h2>
+      <p id="scenDesc">Saves the current simulator settings as your version. Anyone can open it, tweak it, and save their own.</p>
+      <input type="text" id="scenName" maxlength="120" placeholder="Name this scenario (e.g. “Lean AI-native, 2028”)" autocomplete="off">
+      <div class="m-actions">
+        <button class="m-go" id="scenGo" type="button">Save my version</button>
+        <button class="m-cancel" id="scenCancel" type="button">Cancel</button>
+      </div>
+      <div class="m-status" id="scenStatus"></div>
+    </div>
+  </div>
+
 <script type="module">
 import { PERSONAS } from "/personas.js";
 
 const RATE = 24_000;
 console.log("%cCovalent Kee build: ring-buffer-playback", "color:#9a3412;font-weight:600");
 const DEPTS = ["overview", "tools", "supply", "icp", "ihp", "sales", "marcom", "hr"];
-const META = { overview: "Activation Roadmap", tools: "Tool Selection", supply: "Ops — Supply Chain & Logistics", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents", convos: "Conversations",
-  "soon-finance": "Finance", "soon-legal": "Legal, Compliance & Governance", "soon-regulatory": "FDA / Regulatory", "soon-rnd": "R&D Pipeline" };
-const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs" || d === "convos" || d.startsWith("soon-");   // pseudo-sections: no versions, no feedback, no Kee
+const META = { overview: "Activation Roadmap", tools: "Tool Selection", supply: "Ops — Supply Chain & Logistics", icp: "ICP & Persona Discovery", ihp: "Ideal Hiring Profile", sales: "Sales", marcom: "Marketing", hr: "HR", finance: "Finance", demo: "Voice Demo (v1)", activity: "Activity Log", docs: "Documents", convos: "Conversations",
+  "soon-legal": "Legal, Compliance & Governance", "soon-regulatory": "FDA / Regulatory", "soon-rnd": "R&D Pipeline" };
+const NO_DOC = (d) => d === "demo" || d === "activity" || d === "docs" || d === "convos" || d === "finance" || d.startsWith("soon-");   // pseudo-sections: no versions, no feedback, no Kee
 const SOON_INFO = {
-  "soon-finance": ["Billing, AR/AP, reporting, forecasting — the finance operating model and its Covalent Kee capability.", "Confirm next per the Activation Roadmap; first fractional finance / controller targeted for September."],
   "soon-legal": ["Contracts, Sunshine Act / anti-kickback compliance, decision rights, board cadence — one control function.", "Runs the same five-gate sequence; Covalent Kee handles monitoring, audit trails and reporting workflows; judgment stays human."],
   "soon-regulatory": ["Device & consumable registration paths, 510(k) landscape, labeling, post-market monitoring.", "Sequences in with discovery; hybrid model with regulatory counsel."],
   "soon-rnd": ["Device / consumable pipeline intake, landscape scans, screening and diligence workflows.", "Likely sequences after soft launch."],
@@ -873,7 +926,7 @@ async function show(dept) {
   $("fbFab").classList.toggle("hidden", NO_DOC(dept));
   renderVersionBar(dept);
 
-  const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()], convos: ["convosPanel", () => renderConvos()] };
+  const PANELS = { activity: ["activityPanel", () => renderActivity()], docs: ["docsPanel", () => renderDocs()], convos: ["convosPanel", () => renderConvos()], finance: ["financePanel", () => renderFinance()] };
   if (dept.startsWith("soon-")) PANELS[dept] = ["soonPanel", () => renderSoon(dept)];
   else $("soonPanel").classList.remove("show");   // leaving a placeholder page — never leave it lingering under another panel
   if (PANELS[dept]) {
@@ -2215,6 +2268,147 @@ function renderSoon(key) {
     </div>
   </div>`;
 }
+
+/* ====== Finance — AI-Native Org Simulator + saved scenarios ================ */
+// Finance hosts an interactive simulator (finance-sim.html) instead of a versioned
+// document. A "scenario" is the simulator's input bag, saved per contributor in
+// sim_scenarios and forkable. The simulator's own defaults are the base template.
+const FIN_TOOL = "finance_org";
+const FIN_BASE = { year: 4, master: 50,
+  fInt: { rep:50, csm:50, fse:50, sdo:50, ooc:50, sdir:50, eng:50, mktg:50, cled:50, gna:50, wh:50, lead:50 },
+  ai: { seat:12, agent:45, plat:1.25 },
+  comp: { sr:750, jr:250, dir:1000, csm:237.5, fse:150, sdo:100, ooc:75, eng:295, mktg:125, cled:75, gna:130, wh:75 } };
+let finBuilt = false, finScenarios = [], finReady = false, finPending = null, finCurrent = null;
+const finStateReqs = {};
+const finInitials = (n) => (n || "?").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const finSelOpts = () => `<option value="">Base template</option>` +
+  finScenarios.map((s) => `<option value="${s.id}">${esc(s.name)} — ${esc(s.created_by || "someone")}</option>`).join("");
+
+function renderFinance() {
+  if (!finBuilt) { buildFinance(); finBuilt = true; }
+  finShowStart();   // every entry returns to the chooser and refreshes the list
+}
+
+function buildFinance() {
+  $("financePanel").innerHTML = `
+    <div id="finStart" class="act-wrap fin-start"></div>
+    <div id="finSim" style="display:none;flex:1;flex-direction:column;min-height:0;">
+      <div class="fin-bar">
+        <span class="fb-on" id="finOn"></span>
+        <span class="fb-sp"></span>
+        <label class="fb-on" style="display:flex;align-items:center;gap:6px;">Open <select id="finSelect"></select></label>
+        <button class="fb-save" id="finSaveBtn">Save my version</button>
+        <button id="finBackBtn">All scenarios</button>
+      </div>
+      <iframe id="finFrame" class="fin-frame" title="AI-Native Org Simulator"></iframe>
+    </div>`;
+  $("finBackBtn").addEventListener("click", finShowStart);
+  $("finSaveBtn").addEventListener("click", openScenSave);
+  $("finSelect").addEventListener("change", () => finEnter($("finSelect").value || null));
+}
+
+async function loadFinScenarios() {
+  try { const r = await fetch(`/api/scenarios?tool=${FIN_TOOL}`); if (r.ok) finScenarios = (await r.json()).scenarios || []; }
+  catch { /* keep whatever we had */ }
+  return finScenarios;
+}
+
+async function finShowStart() {
+  $("financePanel").classList.remove("fin-simmode");
+  $("finSim").style.display = "none";
+  $("finStart").style.display = "";
+  $("finStart").innerHTML = `<div class="fin-eyebrow">Finance · planning tool</div>
+    <h1 class="fin-h">AI-Native Org Simulator</h1>
+    <p class="fin-sub">Loading saved scenarios…</p>`;
+  await loadFinScenarios();
+  const byId = {}; finScenarios.forEach((s) => { byId[s.id] = s; });
+  const cards = finScenarios.map((s) => {
+    const based = s.based_on && byId[s.based_on] ? ` · from “${esc(byId[s.based_on].name)}”` : "";
+    const who = s.created_by ? esc(s.created_by) : "someone";
+    let when = ""; try { when = " · " + new Date(s.created_at).toLocaleDateString(); } catch {}
+    return `<button class="fin-card" data-id="${s.id}"><span class="fc-ic">▣</span>
+      <span class="fc-tx"><span class="fc-t">${esc(s.name)}</span>
+      <span class="fc-m"><span class="fin-avatar">${esc(finInitials(s.created_by))}</span>${who}${based}${when}</span></span>
+      <span class="fc-go">→</span></button>`;
+  }).join("");
+  $("finStart").innerHTML = `<div class="fin-eyebrow">Finance · planning tool</div>
+    <h1 class="fin-h">AI-Native Org Simulator</h1>
+    <p class="fin-sub">Model Covalent's people, AI spend and EBITDA across the plan — slide each function between human-led and AI-native and watch headcount, revenue per employee and margin move. Start from the base template, or open someone's saved scenario, tweak it, and save your own version.</p>
+    <div class="fin-lbl">Start fresh</div>
+    <button class="fin-card base" data-id=""><span class="fc-ic">✦</span>
+      <span class="fc-tx"><span class="fc-t">Base template</span><span class="fc-m">The original model at the current plan (50% AI-native) — a clean starting point.</span></span>
+      <span class="fc-go">→</span></button>
+    <div class="fin-lbl">Saved scenarios${finScenarios.length ? ` · ${finScenarios.length}` : ""}</div>
+    ${cards || `<div class="fin-empty">No saved scenarios yet — open the base template, explore, and save the first one.</div>`}`;
+  $("finStart").querySelectorAll(".fin-card").forEach((b) => b.addEventListener("click", () => finEnter(b.dataset.id || null)));
+}
+
+function finEnter(id) {
+  const sc = id ? finScenarios.find((s) => s.id === id) : null;
+  finCurrent = sc || null;
+  $("finStart").style.display = "none";
+  $("finSim").style.display = "flex";
+  $("financePanel").classList.add("fin-simmode");
+  $("finSelect").innerHTML = finSelOpts();
+  $("finSelect").value = id || "";
+  $("finOn").innerHTML = sc ? `Exploring <b>${esc(sc.name)}</b> · by ${esc(sc.created_by || "someone")}` : `Exploring the <b>base template</b>`;
+  const frame = $("finFrame");
+  const apply = async () => {
+    let state = FIN_BASE;
+    if (sc) { try { const r = await fetch(`/api/scenarios/${sc.id}`); if (r.ok) state = (await r.json()).scenario.state || FIN_BASE; } catch {} }
+    const f = $("finFrame"); if (f && f.contentWindow) f.contentWindow.postMessage({ type: "kee-sim-apply", state }, "*");
+  };
+  if (!frame.src) { finReady = false; frame.src = "/finance-sim.html"; finPending = apply; }
+  else if (finReady) apply();
+  else finPending = apply;
+}
+
+function finRequestState() {
+  return new Promise((resolve) => {
+    const f = $("finFrame"); if (!f || !f.contentWindow) return resolve(null);
+    const reqId = "r" + Math.random().toString(36).slice(2);
+    finStateReqs[reqId] = resolve;
+    f.contentWindow.postMessage({ type: "kee-sim-get", reqId }, "*");
+    setTimeout(() => { if (finStateReqs[reqId]) { delete finStateReqs[reqId]; resolve(null); } }, 2500);
+  });
+}
+
+window.addEventListener("message", (e) => {
+  const d = e.data || {};
+  if (d.type === "kee-sim-ready") { finReady = true; if (finPending) { const p = finPending; finPending = null; p(); } }
+  else if (d.type === "kee-sim-state" && d.reqId && finStateReqs[d.reqId]) { finStateReqs[d.reqId](d.state); delete finStateReqs[d.reqId]; }
+});
+
+function openScenSave() {
+  $("scenName").value = finCurrent ? `${finCurrent.name} — ${userName || "my"} edit` : "";
+  $("scenStatus").textContent = ""; $("scenStatus").className = "m-status";
+  $("scenModal").classList.add("open");
+  setTimeout(() => $("scenName").focus(), 60);
+}
+$("scenCancel").addEventListener("click", () => $("scenModal").classList.remove("open"));
+$("scenModal").addEventListener("click", (e) => { if (e.target.id === "scenModal") $("scenModal").classList.remove("open"); });
+$("scenName").addEventListener("keydown", (e) => { if (e.key === "Enter") $("scenGo").click(); });
+$("scenGo").addEventListener("click", async () => {
+  const name = $("scenName").value.trim();
+  if (!name) { $("scenStatus").textContent = "Give it a name first."; $("scenStatus").className = "m-status err"; return; }
+  $("scenGo").disabled = true; $("scenStatus").textContent = "Reading the simulator…"; $("scenStatus").className = "m-status";
+  const state = await finRequestState();
+  if (!state) { $("scenStatus").textContent = "Couldn't read the simulator — try again."; $("scenStatus").className = "m-status err"; $("scenGo").disabled = false; return; }
+  try {
+    const r = await fetch("/api/scenarios", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tool: FIN_TOOL, name, created_by: userName || null, based_on: finCurrent ? finCurrent.id : null, state }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "save failed");
+    $("scenStatus").textContent = "Saved — it's now in everyone's list."; $("scenStatus").className = "m-status ok";
+    track("scenario_saved", { based_on: !!finCurrent });
+    await loadFinScenarios();
+    finCurrent = j.scenario;
+    $("finSelect").innerHTML = finSelOpts(); $("finSelect").value = j.scenario.id;
+    $("finOn").innerHTML = `Exploring <b>${esc(j.scenario.name)}</b> · by ${esc(j.scenario.created_by || "someone")}`;
+    setTimeout(() => $("scenModal").classList.remove("open"), 800);
+  } catch (err) { $("scenStatus").textContent = String(err.message || err); $("scenStatus").className = "m-status err"; }
+  finally { $("scenGo").disabled = false; }
+});
 
 /* ====== Shell wiring ======================================================== */
 $("nav").addEventListener("click", (e) => {

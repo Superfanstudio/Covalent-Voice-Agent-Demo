@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Covalent · AI-Native Org Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf6f0; --paper-2:#f3eadd; --card:#fffdf9; --card-2:#f6efe5;
+  --ink:#2b2520; --ink-2:#6b6258; --line:#e4d9c9; --line-2:#efe7da;
+  --rust:#a8432c; --rust-soft:#c9745e; --rust-wash:#f3e2da;
+  --good:#3f6b4f; --good-wash:#e3ecdf; --warn:#9a7a1f; --warn-wash:#f1e8cf;
+  --ghost:#d8cbb8;
+  --shadow:0 1px 2px rgba(43,37,32,.05),0 8px 24px rgba(43,37,32,.06);
+}
+[data-theme="light"]{--paper:#faf6f0;--paper-2:#f3eadd;--card:#fffdf9;--card-2:#f6efe5;
+  --ink:#2b2520;--ink-2:#6b6258;--line:#e4d9c9;--line-2:#efe7da;--ghost:#d8cbb8;--rust-wash:#f3e2da;--good-wash:#e3ecdf;--warn-wash:#f1e8cf;}
+[data-theme="dark"]{
+  --paper:#181512;--paper-2:#211c18;--card:#221d18;--card-2:#2b251f;
+  --ink:#f3ece1;--ink-2:#a89c8c;--line:#37302a;--line-2:#2c2620;
+  --rust:#e08163;--rust-soft:#c9745e;--rust-wash:#3a261f;
+  --good:#82b894;--good-wash:#22302a;--warn:#d9b65a;--warn-wash:#33301f;--ghost:#4a3f34;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter Tight',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+  line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+.masthead{display:flex;justify-content:space-between;align-items:center;padding:18px 0 14px;border-bottom:1px solid var(--line)}
+.brand{display:flex;flex-direction:column;gap:1px}
+.kee{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--rust);font-weight:600}
+.kee b{color:var(--ink-2);font-weight:500}
+.stamp{font-size:11px;color:var(--ink-2);letter-spacing:.02em}
+.toggle{background:var(--card);border:1px solid var(--line);color:var(--ink-2);border-radius:999px;
+  padding:7px 14px;font:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+.toggle:hover{border-color:var(--rust);color:var(--rust)}
+
+.hero{padding:40px 0 8px}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--rust);font-weight:600;margin-bottom:14px}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,5vw,50px);line-height:1.04;letter-spacing:-.015em;max-width:18ch}
+.lede{margin-top:16px;font-size:17px;color:var(--ink-2);max-width:64ch}
+.lede b{color:var(--ink);font-weight:600}
+
+.console{margin-top:30px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.console-top{padding:24px 26px 20px;border-bottom:1px solid var(--line-2)}
+.ctl-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:18px}
+.ctl-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+.ctl-sub{font-size:13px;color:var(--ink-2);margin-top:2px}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{font:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);transition:.18s}
+.preset:hover{border-color:var(--rust-soft);color:var(--ink)}
+.preset.on{background:var(--rust);border-color:var(--rust);color:#fff}
+.track-labels{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:8px}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;cursor:pointer;background:linear-gradient(90deg,var(--ghost),var(--rust-soft),var(--rust))}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--card);border:3px solid var(--rust);box-shadow:0 2px 8px rgba(43,37,32,.25);cursor:grab}
+.slider::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--card);border:3px solid var(--rust);box-shadow:0 2px 8px rgba(43,37,32,.25);cursor:grab}
+.ticks{display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--ink-2);letter-spacing:.02em}
+.intensity-read{margin-top:14px;font-size:13px;color:var(--ink-2)}
+.intensity-read b{color:var(--rust);font-weight:600}
+
+.years{padding:16px 26px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card-2)}
+.years .yl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin-right:4px}
+.ypill{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);transition:.15s}
+.ypill:hover{border-color:var(--rust-soft)}
+.ypill.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+[data-theme="dark"] .ypill.on{background:var(--rust);border-color:var(--rust);color:#fff}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line-2)}
+.metric{padding:22px 24px;border-right:1px solid var(--line-2)}
+.metric:last-child{border-right:none}
+.m-label{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.m-value{font-family:'Fraunces',serif;font-size:clamp(26px,3.4vw,38px);font-weight:600;line-height:1;margin-top:10px;letter-spacing:-.01em}
+.m-value .u{font-size:.5em;color:var(--ink-2);font-weight:500;margin-left:2px}
+.m-delta{font-size:12px;margin-top:9px;font-weight:600;display:flex;align-items:center;gap:5px}
+.m-delta.pos{color:var(--good)}.m-delta.neg{color:var(--rust)}
+.m-delta .sub{color:var(--ink-2);font-weight:500}
+
+.section{padding:46px 0 0}
+.s-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.s-num{font-family:'Fraunces',serif;font-size:14px;color:var(--rust);font-weight:600}
+.s-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;letter-spacing:-.01em}
+.s-sub{font-size:14px;color:var(--ink-2);max-width:68ch;margin-bottom:22px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow)}
+.panel h3{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-bottom:4px}
+.panel .ph-sub{font-size:12.5px;color:var(--ink-2);margin-bottom:18px}
+
+.fbar{margin-bottom:13px}
+.fbar-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:5px}
+.fbar-top .nm{font-weight:500}
+.fbar-top .vl{font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+.fbar-top .vl b{color:var(--ink)}
+.fbar-track{position:relative;height:14px;background:var(--card-2);border-radius:7px;overflow:hidden}
+.fbar-ghost{position:absolute;top:0;left:0;height:100%;background:repeating-linear-gradient(45deg,var(--ghost),var(--ghost) 3px,transparent 3px,transparent 6px);opacity:.7;border-radius:7px}
+.fbar-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--rust-soft),var(--rust));border-radius:7px;transition:width .5s cubic-bezier(.22,.61,.36,1)}
+
+.tune-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.tune-toggle{font-size:12.5px;color:var(--rust);font-weight:600;display:flex;align-items:center;gap:6px}
+.tune-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.tune-body.open{max-height:1500px}
+.tune-group{margin-top:18px}
+.tg-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin-bottom:12px}
+.frow{display:grid;grid-template-columns:128px 1fr 50px;align-items:center;gap:12px;margin-bottom:11px}
+.frow .fn{font-size:13px;font-weight:500}
+.fslider{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:var(--line);outline:none;cursor:pointer}
+.fslider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--rust);border:2px solid var(--card);cursor:grab}
+.fslider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--rust);border:2px solid var(--card);cursor:grab}
+.fval{font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink-2);font-weight:600}
+
+/* comp table */
+.ctable{width:100%;border-collapse:collapse;font-size:13px}
+.ctable th{text-align:left;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600;padding:0 8px 10px;border-bottom:1px solid var(--line)}
+.ctable th.r,.ctable td.r{text-align:right}
+.ctable td{padding:11px 8px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.ctable td.role{font-weight:500;max-width:150px}
+.ctable td.role span{display:block;font-size:11px;color:var(--ink-2);font-weight:400}
+.cinput{width:74px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:600}
+.cinput:focus{outline:none;border-color:var(--rust)}
+.bmbar{position:relative;height:8px;background:var(--card-2);border-radius:5px;min-width:90px}
+.bmrange{position:absolute;top:0;height:100%;background:var(--good-wash);border-radius:5px}
+.bmmed{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink-2);border-radius:2px}
+.bmmark{position:absolute;top:-4px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--card);transform:translateX(-50%);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.flag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.flag.hi{background:var(--warn-wash);color:var(--warn)}
+.flag.at{background:var(--good-wash);color:var(--good)}
+.flag.lo{background:var(--card-2);color:var(--ink-2)}
+.comp-foot{margin-top:16px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.comp-summary{margin-top:16px;display:flex;gap:14px;flex-wrap:wrap}
+.csum{flex:1;min-width:150px;background:var(--card-2);border-radius:12px;padding:14px 16px}
+.csum .ck{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.csum .cv{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-top:6px}
+.csum .cd{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+
+/* AI levers */
+.ailever{margin-bottom:20px}
+.ailever .alh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.ailever .aln{font-size:13.5px;font-weight:600}
+.ailever .alv{font-variant-numeric:tabular-nums;font-weight:700;color:var(--rust)}
+.ailever .ald{font-size:11.5px;color:var(--ink-2);margin-bottom:8px}
+.ailever input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:var(--line);outline:none;cursor:pointer}
+.ailever input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--rust);border:2px solid var(--card);cursor:grab}
+.ailever input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--rust);border:2px solid var(--card);cursor:grab}
+
+/* bridge */
+.bridge{display:flex;flex-direction:column;gap:0}
+.brow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.brow .bl{display:flex;align-items:center;gap:9px}
+.brow .bdot{width:9px;height:9px;border-radius:2px}
+.brow .bv{font-variant-numeric:tabular-nums;font-weight:600}
+.brow.tot{border-bottom:none;border-top:1.5px solid var(--ink);padding-top:13px;font-weight:700;font-size:15px}
+.brow.tot .bv{font-family:'Fraunces',serif;color:var(--rust)}
+
+.pnl{width:100%;border-collapse:collapse;font-size:13.5px}
+.pnl td{padding:9px 4px;border-bottom:1px solid var(--line-2);font-variant-numeric:tabular-nums}
+.pnl td:first-child{text-align:left;color:var(--ink)}
+.pnl td:nth-child(2){text-align:right;color:var(--ink-2)}
+.pnl td:last-child{text-align:right;font-weight:600}
+.pnl tr.head td{color:var(--ink-2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--line)}
+.pnl tr.major td:first-child{font-weight:600}
+.pnl tr.ai td:first-child{color:var(--rust);font-weight:600}
+.pnl tr.ai td:last-child{color:var(--rust)}
+.pnl tr.total td{border-top:1.5px solid var(--ink);border-bottom:none;padding-top:11px;font-weight:700;font-size:15px}
+.pnl tr.total td:last-child{color:var(--rust);font-family:'Fraunces',serif}
+.recon{margin-top:16px;font-size:12px;color:var(--ink-2);background:var(--card-2);border-radius:10px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start}
+.recon .dot{width:7px;height:7px;border-radius:50%;background:var(--good);margin-top:5px;flex-shrink:0}
+.recon b{color:var(--good)}
+
+.bench{margin-top:18px;background:var(--card-2);border-radius:12px;padding:16px 18px}
+.bench h4{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);font-weight:600;margin-bottom:10px}
+.bench ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.bench li{font-size:12.5px;color:var(--ink-2);display:flex;gap:9px;line-height:1.45}
+.bench li b{color:var(--ink);font-weight:600}
+.bench li .bm{width:6px;height:6px;border-radius:50%;background:var(--rust);margin-top:6px;flex-shrink:0}
+
+.insight{margin-top:30px;background:linear-gradient(135deg,var(--rust-wash),var(--card));border:1px solid var(--line);border-radius:16px;padding:26px 28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+.ins{display:flex;flex-direction:column;gap:6px}
+.ins .ik{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust);font-weight:600}
+.ins .iv{font-family:'Fraunces',serif;font-size:28px;font-weight:600;line-height:1;letter-spacing:-.01em}
+.ins .id{font-size:12.5px;color:var(--ink-2)}
+
+.chart-wrap{margin-top:8px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.cx-label{font-size:11px;fill:var(--ink-2);font-family:'Inter Tight'}
+.leg{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.leg span{display:flex;align-items:center;gap:6px}
+.sw{width:13px;height:13px;border-radius:3px}
+.sw.dash{background:repeating-linear-gradient(45deg,var(--ghost),var(--ghost) 3px,transparent 3px,transparent 6px);border:1px solid var(--ghost)}
+
+footer{margin-top:54px;padding:26px 0 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.foot-l{font-size:12px;color:var(--ink-2)}
+.foot-l b{color:var(--rust);font-weight:600}
+.foot-r{font-size:11px;color:var(--ink-2);letter-spacing:.02em;max-width:46ch;text-align:right}
+
+@media(max-width:880px){
+  .metrics{grid-template-columns:1fr 1fr}
+  .metric:nth-child(2){border-right:none}
+  .metric:nth-child(1),.metric:nth-child(2){border-bottom:1px solid var(--line-2)}
+  .grid2{grid-template-columns:1fr}
+  .insight{grid-template-columns:1fr;gap:18px}
+  .foot-r{text-align:left}
+}
+@media(max-width:560px){
+  .wrap{padding:0 16px}
+  .metrics{grid-template-columns:1fr}
+  .metric{border-right:none;border-bottom:1px solid var(--line-2)}
+  .frow{grid-template-columns:92px 1fr 42px;gap:8px}
+  .ctable td.role span{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="brand">
+      <div class="kee">Generated by Covalent Kee <b>· Financial Simulation</b></div>
+      <div class="stamp">Last updated 2026-06-12 · 16:30 UTC</div>
+    </div>
+    <button class="toggle" id="themeBtn"><span id="themeIcon">◗</span><span id="themeTxt">Dark</span></button>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Headcount · Pay · AI Cost · Revenue-per-Employee Sandbox</div>
+    <h1>Compress the org with AI — and price what the AI itself costs.</h1>
+    <p class="lede">Drag the dial to move Covalent between a human-led build and an AI-native one. Now you can also <b>edit pay per role against market benchmarks</b> and <b>charge the cost of the agent layer back to the P&amp;L</b>. Headcount falls and revenue per employee climbs — but only the EBITDA that survives the AI bill is real. The midpoint still reconciles to the Source-of-Truth model.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-top">
+      <div class="ctl-head">
+        <div>
+          <div class="ctl-title">AI-Native intensity</div>
+          <div class="ctl-sub">One dial drives every function. Fine-tune teams, pay, and AI cost below.</div>
+        </div>
+        <div class="presets">
+          <button class="preset" data-p="0" id="pTrad">Human-led</button>
+          <button class="preset on" data-p="50" id="pPlan">Current plan</button>
+          <button class="preset" data-p="100" id="pAI">AI-native</button>
+        </div>
+      </div>
+      <div class="track-labels"><span>Traditional · more people</span><span>AI-native · pods + agents</span></div>
+      <input type="range" min="0" max="100" value="50" step="1" class="slider" id="master">
+      <div class="ticks"><span>0 · Human-led</span><span>50 · Current plan (SOT)</span><span>100 · AI-native</span></div>
+      <div class="intensity-read">Scenario: <b id="scenName">Current plan — matches Source of Truth</b></div>
+    </div>
+
+    <div class="years">
+      <span class="yl">View year</span>
+      <button class="ypill" data-y="0">2027 · Y1</button>
+      <button class="ypill" data-y="1">2028 · Y2</button>
+      <button class="ypill" data-y="2">2029 · Y3</button>
+      <button class="ypill" data-y="3">2030 · Y4</button>
+      <button class="ypill on" data-y="4">2031 · Y5</button>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><div class="m-label">Total headcount</div><div class="m-value" id="vHC">509</div><div class="m-delta" id="dHC"></div></div>
+      <div class="metric"><div class="m-label">Revenue / employee</div><div class="m-value" id="vREE">$1.47<span class="u">M</span></div><div class="m-delta" id="dREE"></div></div>
+      <div class="metric"><div class="m-label">EBITDA <span style="font-weight:400;text-transform:none;letter-spacing:0">(net of AI)</span></div><div class="m-value" id="vEB">$217<span class="u">M</span></div><div class="m-delta" id="dEB"></div></div>
+      <div class="metric"><div class="m-label">EBITDA margin</div><div class="m-value" id="vMG">29.0<span class="u">%</span></div><div class="m-delta" id="dMG"></div></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="ins"><div class="ik">Headcount compression</div><div class="iv" id="iComp">—</div><div class="id" id="iCompD"></div></div>
+    <div class="ins"><div class="ik">Revenue / employee lift</div><div class="iv" id="iLift">—</div><div class="id" id="iLiftD"></div></div>
+    <div class="ins"><div class="ik">Net EBITDA vs human-led</div><div class="iv" id="iEbit">—</div><div class="id" id="iEbitD"></div></div>
+  </div>
+
+  <!-- 01 headcount -->
+  <div class="section">
+    <div class="s-head"><span class="s-num">01</span><span class="s-title">Where the headcount sits</span></div>
+    <div class="s-sub">Live headcount by function for the selected year. The hatched bar behind each is the fully human-led baseline — the gap is what agents absorb.</div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Headcount by function</h3><div class="ph-sub" id="fByYear">2031 · Y5</div>
+        <div id="fbars"></div>
+      </div>
+      <div class="panel">
+        <div class="tune-head" id="tuneHead">
+          <div><h3>Fine-tune by team</h3><div class="ph-sub">Override any function. Reset with a preset.</div></div>
+          <div class="tune-toggle"><span id="tuneTxt">Show controls</span><span class="chev" id="tuneChev">▾</span></div>
+        </div>
+        <div class="tune-body" id="tuneBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 comp vs market -->
+  <div class="section">
+    <div class="s-head"><span class="s-num">02</span><span class="s-title">Pay per role vs. market</span></div>
+    <div class="s-sub">Edit loaded cost per head (base + variable &times; ~1.25 benefits/taxes, the SOT convention). The band shows the market range — green is 25th&ndash;75th percentile, the tick is median. Pay above the band lifts cost; below it can raise retention risk. Sales benchmarks blend Keith &amp; Manny's lived numbers with public market data.</div>
+    <div class="panel">
+      <table class="ctable">
+        <thead><tr><th>Role</th><th class="r">Heads <span id="cYear" style="font-weight:400;text-transform:none"></span></th><th class="r">Covalent $K</th><th>Market band (loaded $K)</th><th>Position</th><th class="r">Cost $M</th></tr></thead>
+        <tbody id="ctbody"></tbody>
+      </table>
+      <div class="comp-summary">
+        <div class="csum"><div class="ck">People comp — your pay</div><div class="cv" id="csYou">—</div><div class="cd" id="csYouD">selected year, scenario headcount</div></div>
+        <div class="csum"><div class="ck">If paid at market median</div><div class="cv" id="csMkt">—</div><div class="cd" id="csMktD"></div></div>
+        <div class="csum"><div class="ck">Premium vs. market</div><div class="cv" id="csGap">—</div><div class="cd">how much over/under market this plan pays</div></div>
+      </div>
+      <div class="comp-foot" id="compFoot"></div>
+    </div>
+  </div>
+
+  <!-- 03 AI layer -->
+  <div class="section">
+    <div class="s-head"><span class="s-num">03</span><span class="s-title">The cost of the AI layer</span></div>
+    <div class="s-sub">An AI-native org isn't free — the agents that replace headcount consume tokens, tooling and platform. This charges that cost back to the P&amp;L so the EBITDA you read is net of AI. Defaults are benchmark-anchored; tune them to your own contracts.</div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>AI cost levers</h3><div class="ph-sub">Three drivers, each tunable. AI cost grows as you go AI-native.</div>
+
+        <div class="ailever">
+          <div class="alh"><span class="aln">Agent tooling per active seat</span><span class="alv" id="alvSeat">$12K/yr</span></div>
+          <div class="ald">Copilot + agent stack per remaining human. Market: basic copilots ~$30–50/user/mo; premium agentic seats $300–1,000+/mo.</div>
+          <input type="range" id="aiSeat" min="0" max="40" step="1" value="12">
+        </div>
+
+        <div class="ailever">
+          <div class="alh"><span class="aln">Agent run-cost per displaced FTE</span><span class="alv" id="alvAgent">$45K/yr</span></div>
+          <div class="ald">Tokens + compute + orchestration to run agents doing the work a person used to. A fraction of a $150–750K loaded human; LLMflation drops per-task cost ~10&times;/yr.</div>
+          <input type="range" id="aiAgent" min="0" max="150" step="5" value="45">
+        </div>
+
+        <div class="ailever">
+          <div class="alh"><span class="aln">AI platform &amp; infrastructure</span><span class="alv" id="alvPlat">1.25% of revenue</span></div>
+          <div class="ald">Orchestration, data platform, security, model routing, evals/observability. Internal-ops layer — far below the ~23% of revenue a pure-AI <i>product</i> spends on inference.</div>
+          <input type="range" id="aiPlat" min="0" max="600" step="25" value="125">
+        </div>
+
+        <div class="bench">
+          <h4>What grounds these numbers</h4>
+          <ul>
+            <li><span class="bm"></span><span>ICONIQ <b>State of AI (Jan 2026)</b>: model inference ≈ <b>23% of total AI product cost</b>; AI-native product gross margins ≈ <b>52%</b> in 2026 vs 75–85% for SaaS.</span></li>
+            <li><span class="bm"></span><span>a16z <b>"LLMflation"</b>: ~<b>10&times; annual</b> decline in token cost for equal performance — but total spend still rises as usage expands (Jevons).</span></li>
+            <li><span class="bm"></span><span>Dr. M's directive: <b>model AI &amp; token cost from the outset</b> to protect Covalify's 80%+ gross margin — that product-COGS inference sits inside blended GM here, separate from this internal-ops line.</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>The AI bridge — <span id="brYear">2031 · Y5</span></h3>
+        <div class="ph-sub">From the current plan to your scenario: comp you save, less the AI you spend.</div>
+        <div class="bridge">
+          <div class="brow"><span class="bl"><span class="bdot" style="background:var(--ink-2)"></span>Current-plan EBITDA</span><span class="bv" id="brPlan"></span></div>
+          <div class="brow"><span class="bl"><span class="bdot" style="background:var(--good)"></span>Comp saved vs plan</span><span class="bv" id="brComp"></span></div>
+          <div class="brow"><span class="bl"><span class="bdot" style="background:var(--rust)"></span>AI layer cost vs plan</span><span class="bv" id="brAI"></span></div>
+          <div class="brow tot"><span class="bl">Scenario EBITDA</span><span class="bv" id="brScen"></span></div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="alh" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);margin-bottom:6px"><span>AI layer cost this year</span><span style="font-weight:600;color:var(--rust)" id="aiTotRead"></span></div>
+          <div class="chart-wrap"><svg id="aiChart" viewBox="0 0 360 150" role="img" aria-label="AI cost composition"></svg></div>
+          <div class="leg">
+            <span><span class="sw" style="background:var(--rust)"></span>Per-seat tooling</span>
+            <span><span class="sw" style="background:var(--rust-soft)"></span>Agent run-cost</span>
+            <span><span class="sw" style="background:var(--ghost)"></span>Platform</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 trajectory -->
+  <div class="section">
+    <div class="s-head"><span class="s-num">04</span><span class="s-title">The five-year trajectory</span></div>
+    <div class="s-sub">Headcount (bars) against revenue per employee (line) across the plan. Dashed outline is the human-led path — the distance between them is the operating leverage of an AI-native build.</div>
+    <div class="panel">
+      <div class="chart-wrap"><svg id="trajChart" viewBox="0 0 720 340" role="img" aria-label="Headcount and revenue per employee by year"></svg></div>
+      <div class="leg">
+        <span><span class="sw" style="background:linear-gradient(90deg,var(--rust-soft),var(--rust))"></span>Headcount — your scenario</span>
+        <span><span class="sw dash"></span>Headcount — human-led baseline</span>
+        <span><span class="sw" style="background:var(--ink);border-radius:50%;width:10px;height:10px"></span>Revenue / employee</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 P&L -->
+  <div class="section">
+    <div class="s-head"><span class="s-num">05</span><span class="s-title">What it does to the P&amp;L</span></div>
+    <div class="s-sub">The full operating picture for the selected year — now with the AI layer as its own line. Revenue, gross margin and program spend hold to the plan; people comp and AI cost flex with your scenario.</div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Operating model — <span id="pnlYear">2031 · Y5</span></h3>
+        <div class="ph-sub" id="pnlScen">Current plan</div>
+        <table class="pnl">
+          <tr class="head"><td>Line item</td><td>Plan</td><td>Scenario</td></tr>
+          <tr class="major"><td>Total revenue</td><td id="pRevP"></td><td id="pRev"></td></tr>
+          <tr><td>Gross profit</td><td id="pGpP"></td><td id="pGp"></td></tr>
+          <tr><td>People comp</td><td id="pPplP"></td><td id="pPpl"></td></tr>
+          <tr class="ai"><td>AI operating layer</td><td id="pAiP"></td><td id="pAi"></td></tr>
+          <tr><td>Programs &amp; other OpEx</td><td id="pNpP"></td><td id="pNp"></td></tr>
+          <tr><td>Total operating expense</td><td id="pOxP"></td><td id="pOx"></td></tr>
+          <tr class="total"><td>EBITDA</td><td id="pEbP"></td><td id="pEb"></td></tr>
+        </table>
+        <div class="recon"><span class="dot"></span><span id="reconTxt"></span></div>
+      </div>
+      <div class="panel">
+        <h3>Cost structure shift</h3>
+        <div class="ph-sub">People, AI and other operating cost as a share of revenue — plan vs. scenario.</div>
+        <div class="chart-wrap"><svg id="costChart" viewBox="0 0 360 300" role="img" aria-label="Cost structure"></svg></div>
+        <div class="leg">
+          <span><span class="sw" style="background:var(--rust)"></span>People</span>
+          <span><span class="sw" style="background:var(--rust-soft)"></span>AI layer</span>
+          <span><span class="sw" style="background:var(--ghost)"></span>Programs &amp; other</span>
+          <span><span class="sw" style="background:var(--good)"></span>EBITDA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot-l"><b>Powered by KeeMakr.AI</b> · Built on the Covalent Source-of-Truth Financial Model v3</div>
+    <div class="foot-r">Figures in $M unless noted · Midpoint reconciles to SOT · Comp benchmarks blend discovery-call data &amp; public market sources · AI-cost benchmarks: ICONIQ State of AI Jan 2026, a16z · Indicative simulation, not a forecast</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var YEARS=['2027 · Y1','2028 · Y2','2029 · Y3','2030 · Y4','2031 · Y5'];
+var revenue=[41,153.9,315.1,516.3,750.1];
+var gp=[22.8,97.4,210,345.8,504.4];
+var TandE=[1.5,5.5,10,14.5,20];
+var mktgProg=[4.5,12,22.5,36,56];
+var otherFull=[5,12,19,28,42];               // non-people "other" — AI carved from here
+var sot_ebitda=[-12.6,-5.1,47.5,124.3,217.4];
+var infl=[0.9921,1.0011,1.1095,1.2076,1.2148];
+var srFrac=[15/18,52/82,60/112,60/123,60/135];
+var leadComp=[5.5,8,10,12,14];
+
+var HC={rep:[18,82,112,123,135],csm:[5,26,52,78,110],fse:[3,18,37,57,83],sdo:[3,16,33,51,75],
+ooc:[1,2,3,6,10],eng:[4,7,10,12,14],mktg:[2,4,6,7,8],cled:[1.5,4,6,8,10],gna:[3,6,9,11,13],
+wh:[2,2,4,8,13],sdir:[3,4,5,6,6],lead:[16,20,24,28,32]};
+var HM={rep:[1.55,.66],csm:[1.70,.60],fse:[1.55,.62],sdo:[2.00,.50],ooc:[1.70,.50],eng:[1.25,.70],
+mktg:[1.45,.50],cled:[1.20,.78],gna:[1.50,.45],wh:[1.20,.78],sdir:[1.10,.85],lead:[1.10,.90]};
+
+var FUNCS=[{k:'rep',n:'Sales reps',g:'rev'},{k:'csm',n:'Customer success',g:'rev'},
+{k:'fse',n:'Field service',g:'rev'},{k:'sdo',n:'Service desk',g:'rev'},{k:'ooc',n:'Order operations',g:'rev'},
+{k:'sdir',n:'Sales directors',g:'ovh'},{k:'eng',n:'Engineering',g:'ovh'},{k:'mktg',n:'Marketing',g:'ovh'},
+{k:'cled',n:'Clinical education',g:'ovh'},{k:'gna',n:'Finance · HR · Reg',g:'ovh'},
+{k:'wh',n:'Warehouse',g:'ovh'},{k:'lead',n:'Leadership',g:'ovh'}];
+
+/* editable loaded comp $K per head */
+var comp={sr:750,jr:250,dir:1000,csm:237.5,fse:150,sdo:100,ooc:75,eng:295,mktg:125,cled:75,gna:130,wh:75};
+var compDefault=Object.assign({},comp);
+/* market benchmark bands loaded $K [low, median, high] + basis */
+var BM={
+ sr:{n:'Senior reps (capital)',b:[560,690,810],basis:'EBD/capital · OTE×1.25 · Keith: at-plan ~$550K US'},
+ jr:{n:'Junior reps (consumables)',b:[200,240,375],basis:'farmers · OTE×1.25 · Manny/Keith: $160–300K OTE'},
+ dir:{n:'Sales directors',b:[440,700,1000],basis:'regional · OTE+override ×1.25'},
+ csm:{n:'Customer success (Sr)',b:[140,190,250],basis:'enterprise/healthcare CSM · cash×1.25'},
+ fse:{n:'Field service engineers',b:[90,110,165],basis:'med-equip FSE · cash×1.25 · mkt base $65–106K'},
+ sdo:{n:'Service desk operators',b:[56,75,110],basis:'technical support · cash×1.25'},
+ ooc:{n:'Order ops coordinators',b:[56,70,88],basis:'ops coordinator · cash×1.25'},
+ eng:{n:'Engineering (blended)',b:[220,300,450],basis:'Sr SWE/Data · total comp · B2B/health SaaS'},
+ mktg:{n:'Marketing generalists',b:[100,125,163],basis:'B2B mktg · cash×1.25'},
+ cled:{n:'Clinical educators (FTE-eq)',b:[80,110,150],basis:'RN/NP educator · cash×1.25'},
+ gna:{n:'Finance · HR · Reg',b:[100,130,163],basis:'Sr Acct/HR/Reg · cash×1.25'},
+ wh:{n:'Warehouse operators',b:[50,62,80],basis:'cold-chain ops · cash×1.25'}
+};
+var COMP_ROWS=['sr','jr','dir','csm','fse','sdo','ooc','eng','mktg','cled','gna','wh'];
+
+/* AI cost params */
+var ai={seat:12,agent:45,plat:1.25}; // $K/seat, $K/displaced FTE, % of revenue
+
+/* state */
+var year=4, master=50, fInt={};
+FUNCS.forEach(function(f){fInt[f.k]=50;});
+
+/* ---- model ---- */
+function hm(k,x){var hi=HM[k][0],lo=HM[k][1];return x<=0.5?hi+(1-hi)*(x/0.5):1+(lo-1)*((x-0.5)/0.5);}
+function fnHC(k,i,p){var x=p/100,v=HC[k][i]*hm(k,x);if(k==='cled')return Math.round(v*2)/2;
+  var r=Math.round(v);if(k==='fse')r=Math.max(2,r);if(k==='sdo')r=Math.max(3,r);
+  if(k==='ooc'||k==='sdir')r=Math.max(1,r);return r;}
+function fnComp(k,i,p){var x=p/100,n=fnHC(k,i,p); // returns $M
+  if(k==='rep'){var sr=Math.round(n*srFrac[i]);return (sr*comp.sr+(n-sr)*comp.jr)/1000;}
+  if(k==='sdir')return n*comp.dir/1000;
+  if(k==='lead')return leadComp[i]*hm('lead',x);
+  return n*comp[k]/1000;}
+function sumHC(i,getX){var h=0;FUNCS.forEach(function(f){h+=fnHC(f.k,i,getX(f.k));});return h;}
+var uni=function(p){return function(){return p;};};
+
+/* precomputed plan/trad headcount (independent of comp) */
+var planHCarr=[],tradHCarr=[];
+for(var i=0;i<5;i++){planHCarr.push(sumHC(i,uni(50)));tradHCarr.push(sumHC(i,uni(0)));}
+
+function aiCostFor(i,hc){
+  var displaced=Math.max(0,tradHCarr[i]-hc);
+  return {seat:hc*ai.seat/1000, agent:displaced*ai.agent/1000, plat:revenue[i]*ai.plat/100,
+          total:hc*ai.seat/1000 + displaced*ai.agent/1000 + revenue[i]*ai.plat/100};
+}
+var aiPlan=[];
+function recalcAiPlan(){aiPlan=[];for(var i=0;i<5;i++){aiPlan.push(aiCostFor(i,planHCarr[i]).total);}}
+recalcAiPlan();
+
+function totals(i,getX){
+  var hc=0,c=0;
+  FUNCS.forEach(function(f){var x=getX(f.k);hc+=fnHC(f.k,i,x);c+=fnComp(f.k,i,x);});
+  c*=infl[i];
+  var aic=aiCostFor(i,hc);
+  var otherExAI=Math.max(0, otherFull[i]-aiPlan[i]);
+  var np=TandE[i]+mktgProg[i]+otherExAI;
+  var opex=c+np+aic.total;
+  var eb=gp[i]-opex;
+  return {hc:hc,comp:c,ai:aic.total,aiparts:aic,np:np,opex:opex,eb:eb,margin:eb/revenue[i],ree:revenue[i]*1e6/hc};
+}
+function scenT(i){return totals(i,function(k){return fInt[k];});}
+function planT(i){return totals(i,uni(50));}
+function tradT(i){return totals(i,uni(0));}
+
+/* ---- formatting ---- */
+function fmtM(v){if(Math.abs(v)>=100)return '$'+Math.round(v);return '$'+v.toFixed(1).replace(/\.0$/,'');}
+function fmtMs(v){return (v<0?'–$':'$')+(Math.abs(v)>=100?Math.round(Math.abs(v)):Math.abs(v).toFixed(1).replace(/\.0$/,''))+'M';}
+function fmtREE(v){if(v>=1e6)return{num:'$'+(v/1e6).toFixed(2),unit:'M'};return{num:'$'+Math.round(v/1000),unit:'K'};}
+function fmtInt(v){return Math.round(v).toLocaleString('en-US');}
+function pct(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}
+var $=function(id){return document.getElementById(id);};
+
+function tween(el,to,render){
+  var from=el._cur==null?to:el._cur,t0=null,dur=380;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches){el._cur=to;el.innerHTML=render(to);return;}
+  function step(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-p,3),val=from+(to-from)*e;
+    el.innerHTML=render(val);if(p<1)requestAnimationFrame(step);else el._cur=to;}
+  requestAnimationFrame(step);
+}
+function scenarioName(){var p=master;
+  if(p<=2)return 'Human-led — traditional staffing';
+  if(p>=98)return 'AI-native — pods + agent stack';
+  if(p>=46&&p<=54)return 'Current plan — matches Source of Truth';
+  return (p<46?'Leaning human-led':'Leaning AI-native')+' ('+p+'% AI-native)';}
+
+/* ---- render ---- */
+function render(){
+  var s=scenT(year),tr=tradT(year),pl=planT(year);
+
+  tween($('vHC'),s.hc,function(v){return fmtInt(v);});
+  tween($('vREE'),s.ree,function(v){var f=fmtREE(v);return f.num+'<span class="u">'+f.unit+'</span>';});
+  tween($('vEB'),s.eb,function(v){return (v<0?'–$':'$')+Math.abs(Math.round(v))+'<span class="u">M</span>';});
+  tween($('vMG'),s.margin*100,function(v){return v.toFixed(1)+'<span class="u">%</span>';});
+
+  setDelta($('dHC'),s.hc-pl.hc,fmtInt(Math.abs(s.hc-pl.hc))+' vs plan',true);
+  setDelta($('dREE'),s.ree-pl.ree,pct((s.ree/pl.ree-1)*100)+' vs plan',false);
+  setDelta($('dEB'),s.eb-pl.eb,(s.eb-pl.eb>=0?'+':'–')+'$'+Math.abs(Math.round(s.eb-pl.eb))+'M vs plan',false);
+  var mgd=(s.margin-pl.margin)*100; setDelta($('dMG'),mgd,(mgd>=0?'+':'–')+Math.abs(mgd).toFixed(1)+' pts vs plan',false);
+
+  $('iComp').innerHTML=fmtInt(tr.hc)+' → '+fmtInt(s.hc);
+  $('iCompD').textContent=(tr.hc>s.hc?Math.round((1-s.hc/tr.hc)*100)+'% fewer people':'same as human-led')+' than a fully human-led org';
+  $('iLift').innerHTML=fmtREE(tr.ree).num+fmtREE(tr.ree).unit+' → '+fmtREE(s.ree).num+fmtREE(s.ree).unit;
+  $('iLiftD').textContent=(s.ree>tr.ree?'+'+Math.round((s.ree/tr.ree-1)*100)+'% revenue per employee':'baseline productivity');
+  var ebGain=s.eb-tr.eb;
+  $('iEbit').innerHTML=(ebGain>=0?'+$':'–$')+Math.abs(Math.round(ebGain))+'M';
+  $('iEbitD').textContent=YEARS[year]+' EBITDA after the AI bill, vs. the same plan run with people only';
+
+  renderFbars(s); $('fByYear').textContent=YEARS[year];
+  renderComp(s);
+  renderAI(s,pl);
+  renderTraj();
+  renderCost(s,pl);
+  renderPnl(s,pl);
+
+  $('scenName').textContent=scenarioName();
+  syncPresets();
+  FUNCS.forEach(function(f){var el=$('fv_'+f.k);if(el)el.textContent=fnHC(f.k,year,fInt[f.k]);});
+}
+
+function setDelta(el,raw,txt,hcMode){
+  el.className='m-delta '+(hcMode?(raw<0?'pos':(raw>0?'neg':'')):(raw>0?'pos':(raw<0?'neg':'')));
+  var arrow=Math.abs(raw)<1e-9?'·':(raw>0?'▲':'▼');
+  el.innerHTML='<span>'+arrow+'</span><span class="sub">'+txt+'</span>';
+}
+
+function renderFbars(s){
+  var box=$('fbars');box.innerHTML='';
+  var rows=FUNCS.map(function(f){return {n:f.n,cur:fnHC(f.k,year,fInt[f.k]),trad:fnHC(f.k,year,0)};})
+    .sort(function(a,b){return b.cur-a.cur;});
+  var max=Math.max.apply(null,rows.map(function(r){return Math.max(r.cur,r.trad);}))||1;
+  rows.forEach(function(r){
+    var d=document.createElement('div');d.className='fbar';
+    var saved=r.trad-r.cur;
+    d.innerHTML='<div class="fbar-top"><span class="nm">'+r.n+'</span><span class="vl"><b>'+r.cur+'</b>'+
+      (saved>0?' &nbsp;<span style="color:var(--ink-2)">('+r.trad+' human-led)</span>':'')+'</span></div>'+
+      '<div class="fbar-track"><div class="fbar-ghost" style="width:'+(r.trad/max*100)+'%"></div>'+
+      '<div class="fbar-fill" style="width:'+(r.cur/max*100)+'%"></div></div>';
+    box.appendChild(d);
+  });
+}
+
+/* per-role headcount for comp table */
+function roleHC(k,i){
+  var rep=fnHC('rep',i,fInt.rep);
+  if(k==='sr')return Math.round(rep*srFrac[i]);
+  if(k==='jr')return rep-Math.round(rep*srFrac[i]);
+  if(k==='dir')return fnHC('sdir',i,fInt.sdir);
+  return fnHC(k,i,fInt[k]);
+}
+function renderComp(s){
+  $('cYear').textContent='('+YEARS[year].split(' · ')[1]+')';
+  var tb=$('ctbody');tb.innerHTML='';
+  var youCash=0, mktCash=0;
+  COMP_ROWS.forEach(function(k){
+    var bm=BM[k], band=bm.b, cur=comp[k], hc=roleHC(k,i_or());
+    var roleCost=hc*cur/1000, roleMkt=hc*band[1]/1000;
+    youCash+=roleCost; mktCash+=roleMkt;
+    // band bar geometry
+    var lo=band[0],med=band[1],hi=band[2];
+    var axMin=Math.min(lo,cur)*0.92, axMax=Math.max(hi,cur)*1.04, rng=axMax-axMin;
+    function pos(v){return Math.max(0,Math.min(100,(v-axMin)/rng*100));}
+    var rangeL=pos(lo), rangeW=pos(hi)-pos(lo), medL=pos(med), curL=pos(cur);
+    var fl = cur>med*1.08?{c:'hi',t:'Above mkt'}:(cur<med*0.92?{c:'lo',t:'Below mkt'}:{c:'at',t:'At market'});
+    var markColor = cur>med*1.08?'var(--warn)':(cur<med*0.92?'var(--ink-2)':'var(--good)');
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td class="role">'+bm.n+'<span>'+bm.basis+'</span></td>'+
+      '<td class="r">'+hc+'</td>'+
+      '<td class="r"><input class="cinput" id="cmp_'+k+'" type="number" step="5" min="0" value="'+cur+'"></td>'+
+      '<td><div class="bmbar" title="'+lo+'–'+hi+'K, median '+med+'K">'+
+        '<div class="bmrange" style="left:'+rangeL+'%;width:'+rangeW+'%"></div>'+
+        '<div class="bmmed" style="left:'+medL+'%"></div>'+
+        '<div class="bmmark" style="left:'+curL+'%;background:'+markColor+'"></div></div></td>'+
+      '<td><span class="flag '+fl.c+'">'+fl.t+'</span></td>'+
+      '<td class="r">'+fmtM(roleCost)+'M</td>';
+    tb.appendChild(tr);
+  });
+  COMP_ROWS.forEach(function(k){var el=$('cmp_'+k);el.addEventListener('input',function(){
+    var v=parseFloat(el.value);if(!isNaN(v)&&v>=0){comp[k]=v;render();}});});
+  // summary: full bottom-up incl leadership (leadership not benchmarked → unchanged)
+  var leadCash=leadComp[year]*hm('lead',fInt.lead);
+  var youFull=youCash+leadCash, mktFull=mktCash+leadCash;
+  $('csYou').textContent=fmtM(s.comp)+'M';
+  $('csYouD').textContent=YEARS[year]+' · '+fmtInt(s.hc)+' people · incl. leadership & inflation factor';
+  $('csMkt').textContent=fmtM(mktFull*infl[year])+'M';
+  $('csMktD').textContent='same headcount, every benchmarked role at median';
+  var gap=(youFull-mktFull)*infl[year];
+  $('csGap').textContent=(gap>=0?'+':'–')+'$'+fmtM(Math.abs(gap)).replace('$','')+'M';
+  $('csGap').style.color = gap>0?'var(--warn)':'var(--good)';
+  $('compFoot').innerHTML='Loaded cost = (base + variable) × ~1.25 for benefits, employer taxes and 401(k), matching the SOT. '+
+    'Summary $M apply the year-specific comp-inflation &amp; leadership factor used to tie to the Source of Truth ('+
+    'Y'+(year+1)+' ≈ '+infl[year].toFixed(2)+'×), so role rows (today\u2019s dollars) won\u2019t foot exactly to the People line.';
+}
+function i_or(){return year;}
+
+function renderAI(s,pl){
+  $('alvSeat').textContent='$'+ai.seat+'K/yr';
+  $('alvAgent').textContent='$'+ai.agent+'K/yr';
+  $('alvPlat').textContent=(ai.plat).toFixed(2).replace(/\.?0+$/,'')+'% of revenue';
+  $('brYear').textContent=YEARS[year];
+  $('brPlan').textContent=fmtMs(pl.eb);
+  var compSaved=pl.comp-s.comp;       // + = saved
+  var aiAdded=s.ai-pl.ai;             // + = more AI
+  $('brComp').textContent=(compSaved>=0?'+':'–')+'$'+Math.abs(Math.round(compSaved))+'M';
+  $('brComp').style.color=compSaved>=0?'var(--good)':'var(--rust)';
+  $('brAI').textContent=(aiAdded>0?'–$':'+$')+Math.abs(Math.round(aiAdded))+'M';
+  $('brAI').style.color=aiAdded>0?'var(--rust)':'var(--good)';
+  $('brScen').textContent=fmtMs(s.eb);
+  $('aiTotRead').textContent=fmtM(s.ai)+'M';
+  // AI composition bar
+  var p=s.aiparts, tot=p.total||1, W=360,h=46,y=44;
+  var segs=[['seat',p.seat,'var(--rust)'],['agent',p.agent,'var(--rust-soft)'],['plat',p.plat,'var(--ghost)']];
+  var x=0,svg='';
+  segs.forEach(function(sg){var w=sg[1]/tot*W; svg+='<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+h+'" fill="'+sg[2]+'"/>';
+    if(w>40)svg+='<text class="cx-label" x="'+(x+w/2)+'" y="'+(y+h/2+4)+'" text-anchor="middle" style="fill:#fff;font-weight:600">$'+ (sg[1]).toFixed(sg[1]<10?1:0)+'M</text>'; x+=w;});
+  svg+='<text class="cx-label" x="0" y="20" style="font-weight:600;fill:var(--ink)">Composition of the '+fmtM(tot)+'M AI bill</text>';
+  $('aiChart').innerHTML=svg;
+}
+
+function renderPnl(s,pl){
+  $('pnlYear').textContent=YEARS[year];$('pnlScen').textContent=scenarioName();
+  $('pRevP').textContent=fmtM(revenue[year])+'M';$('pRev').textContent=fmtM(revenue[year])+'M';
+  $('pGpP').textContent=fmtM(gp[year])+'M';$('pGp').textContent=fmtM(gp[year])+'M';
+  $('pPplP').textContent=fmtM(pl.comp)+'M';$('pPpl').textContent=fmtM(s.comp)+'M';
+  $('pAiP').textContent=fmtM(pl.ai)+'M';$('pAi').textContent=fmtM(s.ai)+'M';
+  $('pNpP').textContent=fmtM(pl.np)+'M';$('pNp').textContent=fmtM(s.np)+'M';
+  $('pOxP').textContent=fmtM(pl.opex)+'M';$('pOx').textContent=fmtM(s.opex)+'M';
+  $('pEbP').textContent=fmtMs(pl.eb);$('pEb').textContent=fmtMs(s.eb);
+  var planMatchesSOT=Math.abs(pl.eb-sot_ebitda[year])<0.6;
+  if(Math.abs(master-50)<1 && planMatchesSOT){
+    $('reconTxt').innerHTML='<b>Reconciled.</b> At default pay and AI cost, the current-plan EBITDA equals the Source of Truth exactly ('+fmtMs(sot_ebitda[year])+' for '+YEARS[year]+'). The AI layer ('+fmtM(pl.ai)+'M) is carved out of the plan\u2019s other-OpEx, so totals are unchanged.';
+  } else if(Math.abs(master-50)<1){
+    var d=pl.eb-sot_ebitda[year];
+    $('reconTxt').innerHTML='At the plan midpoint your edits move EBITDA <b>'+(d>=0?'+$'+Math.round(d):'–$'+Math.abs(Math.round(d)))+'M</b> vs. the original SOT ('+fmtMs(sot_ebitda[year])+') — driven by your pay and AI-cost assumptions.';
+  } else {
+    var diff=s.eb-pl.eb;
+    $('reconTxt').innerHTML='<b>'+(diff>=0?'+$'+Math.round(diff):'–$'+Math.abs(Math.round(diff)))+'M</b> EBITDA vs. the current plan: comp '+(pl.comp-s.comp>=0?'down':'up')+' '+fmtM(Math.abs(pl.comp-s.comp))+'M, AI '+(s.ai-pl.ai>=0?'up':'down')+' '+fmtM(Math.abs(s.ai-pl.ai))+'M, at '+fmtInt(s.hc)+' people.';
+  }
+}
+
+function renderTraj(){
+  var W=720,H=340,padL=46,padR=52,padT=18,padB=46,iw=W-padL-padR,ih=H-padT-padB;
+  var sc=[],tr=[];for(var i=0;i<5;i++){sc.push(scenT(i));tr.push(tradT(i));}
+  var maxHC=Math.max.apply(null,tr.map(function(t){return t.hc;}))*1.08;
+  var maxREE=Math.max.apply(null,sc.map(function(t){return t.ree;}).concat(tr.map(function(t){return t.ree;})))*1.1;
+  var bw=iw/5,barW=bw*0.42,svg='';
+  for(var g=0;g<=4;g++){var gy=padT+ih*(g/4);
+    svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'" stroke="var(--line-2)"/>';
+    svg+='<text class="cx-label" x="'+(padL-8)+'" y="'+(gy+4)+'" text-anchor="end">'+Math.round(maxHC*(1-g/4))+'</text>';}
+  for(var i=0;i<5;i++){var cx=padL+bw*i+bw/2,hG=tr[i].hc/maxHC*ih,hS=sc[i].hc/maxHC*ih;
+    svg+='<rect x="'+(cx-barW/2)+'" y="'+(padT+ih-hG)+'" width="'+barW+'" height="'+hG+'" rx="5" fill="none" stroke="var(--ghost)" stroke-width="1.5" stroke-dasharray="4 3"/>';
+    svg+='<rect x="'+(cx-barW/2)+'" y="'+(padT+ih-hS)+'" width="'+barW+'" height="'+hS+'" rx="5" fill="url(#rg)"/>';
+    svg+='<text class="cx-label" x="'+cx+'" y="'+(padT+ih-hS-7)+'" text-anchor="middle" style="font-weight:600;fill:var(--ink)">'+fmtInt(sc[i].hc)+'</text>';
+    svg+='<text class="cx-label" x="'+cx+'" y="'+(H-padB+18)+'" text-anchor="middle">'+YEARS[i].split(' · ')[1]+'</text>';}
+  var pts=sc.map(function(t,i){return [padL+bw*i+bw/2, padT+ih-(t.ree/maxREE*ih)];});
+  svg+='<path d="M'+pts.map(function(p){return p[0]+' '+p[1];}).join(' L')+'" fill="none" stroke="var(--ink)" stroke-width="2.5"/>';
+  pts.forEach(function(p,i){svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4.5" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/>';
+    var f=fmtREE(sc[i].ree);svg+='<text class="cx-label" x="'+p[0]+'" y="'+(p[1]-11)+'" text-anchor="middle" style="font-weight:600;fill:var(--ink)">'+f.num+f.unit+'</text>';});
+  for(var g=0;g<=4;g++){var gy=padT+ih*(g/4),rv=maxREE*(1-g/4);
+    svg+='<text class="cx-label" x="'+(W-padR+8)+'" y="'+(gy+4)+'" text-anchor="start">'+(rv>=1e6?'$'+(rv/1e6).toFixed(1)+'M':'$'+Math.round(rv/1000)+'K')+'</text>';}
+  svg+='<defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--rust-soft)"/><stop offset="1" stop-color="var(--rust)"/></linearGradient></defs>';
+  $('trajChart').innerHTML=svg;
+}
+
+function renderCost(s,pl){
+  var W=360,H=300,padB=40,padT=20,barW=84,gap=70,ih=H-padT-padB,rev=revenue[year];
+  function col(t,x,label){
+    var unit=ih/rev,y=padT+ih,out='';
+    [['p',t.comp,'var(--rust)'],['a',t.ai,'var(--rust-soft)'],['o',t.np,'var(--ghost)']].forEach(function(sg){
+      var h=Math.max(0,sg[1])*unit;y-=h;out+='<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+h+'" fill="'+sg[2]+'"/>';});
+    var eh=Math.abs(t.eb)*unit;
+    if(t.eb>=0){y-=eh;out+='<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+eh+'" fill="var(--good)"/>';}
+    else out+='<rect x="'+x+'" y="'+(padT+ih)+'" width="'+barW+'" height="'+eh+'" fill="none" stroke="var(--rust)" stroke-width="1.5" stroke-dasharray="3 3"/>';
+    out+='<text class="cx-label" x="'+(x+barW/2)+'" y="'+(H-padB+18)+'" text-anchor="middle" style="font-weight:600">'+label+'</text>';
+    out+='<text class="cx-label" x="'+(x+barW/2)+'" y="'+(H-padB+32)+'" text-anchor="middle">'+(t.margin*100).toFixed(0)+'% margin</text>';
+    return out;
+  }
+  var x1=W/2-barW-gap/2,x2=W/2+gap/2;
+  $('costChart').innerHTML=col(pl,x1,'Plan')+col(s,x2,'Scenario');
+}
+
+/* fine tune */
+function buildTune(){
+  var body=$('tuneBody');body.innerHTML='';
+  [['rev','Revenue-facing teams'],['ovh','Build &amp; overhead']].forEach(function(grp){
+    var wrap=document.createElement('div');wrap.className='tune-group';
+    wrap.innerHTML='<div class="tg-label">'+grp[1]+'</div>';
+    FUNCS.filter(function(f){return f.g===grp[0];}).forEach(function(f){
+      var row=document.createElement('div');row.className='frow';
+      row.innerHTML='<span class="fn">'+f.n+'</span><input type="range" min="0" max="100" value="'+fInt[f.k]+'" class="fslider" id="fs_'+f.k+'"><span class="fval"><span id="fv_'+f.k+'">'+fnHC(f.k,year,fInt[f.k])+'</span></span>';
+      wrap.appendChild(row);
+    });
+    body.appendChild(wrap);
+  });
+  FUNCS.forEach(function(f){$('fs_'+f.k).addEventListener('input',function(){fInt[f.k]=+this.value;render();});});
+}
+function syncPresets(){
+  [['pTrad',0],['pPlan',50],['pAI',100]].forEach(function(p){
+    var on=Math.abs(master-p[1])<1 && FUNCS.every(function(f){return Math.abs(fInt[f.k]-p[1])<1;});
+    $(p[0]).classList.toggle('on',on);});
+}
+function setAll(p){master=p;$('master').value=p;FUNCS.forEach(function(f){fInt[f.k]=p;var el=$('fs_'+f.k);if(el)el.value=p;});render();}
+
+$('master').addEventListener('input',function(){master=+this.value;FUNCS.forEach(function(f){fInt[f.k]=master;var el=$('fs_'+f.k);if(el)el.value=master;});render();});
+$('pTrad').addEventListener('click',function(){setAll(0);});
+$('pPlan').addEventListener('click',function(){setAll(50);});
+$('pAI').addEventListener('click',function(){setAll(100);});
+document.querySelectorAll('.ypill').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.ypill').forEach(function(x){x.classList.remove('on');});b.classList.add('on');year=+b.dataset.y;render();});});
+
+$('aiSeat').addEventListener('input',function(){ai.seat=+this.value;recalcAiPlan();render();});
+$('aiAgent').addEventListener('input',function(){ai.agent=+this.value;recalcAiPlan();render();});
+$('aiPlat').addEventListener('input',function(){ai.plat=(+this.value)/100;recalcAiPlan();render();});
+
+var tuneOpen=false;
+$('tuneHead').addEventListener('click',function(){tuneOpen=!tuneOpen;$('tuneBody').classList.toggle('open',tuneOpen);
+  $('tuneTxt').textContent=tuneOpen?'Hide controls':'Show controls';$('tuneChev').style.transform=tuneOpen?'rotate(180deg)':'';});
+
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);
+  $('themeIcon').textContent=t==='dark'?'◖':'◗';$('themeTxt').textContent=t==='dark'?'Light':'Dark';
+  try{localStorage.setItem('cov-theme',t);}catch(e){}}
+$('themeBtn').addEventListener('click',function(){setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');render();});
+try{var st=localStorage.getItem('cov-theme');if(st)setTheme(st);}catch(e){}
+
+buildTune();
+render();
+
+/* ---- Covalent OS scenario bridge ----------------------------------------
+   The shell hosts this simulator in an iframe and owns scenario save/load.
+   It talks to us over postMessage: we expose the full input state and accept
+   a state to apply. Everything outside {year,master,fInt,ai,comp} is fixed
+   model data, so a scenario is exactly those five things. */
+function __keeGetState(){
+  return { year:year, master:master,
+    fInt:Object.assign({},fInt),
+    ai:{seat:ai.seat, agent:ai.agent, plat:ai.plat},
+    comp:Object.assign({},comp) };
+}
+function __keeApplyState(s){
+  if(!s||typeof s!=='object')return;
+  if(typeof s.master==='number'){master=s.master; if($('master'))$('master').value=master;}
+  if(s.fInt){FUNCS.forEach(function(f){var v=s.fInt[f.k]; if(typeof v==='number'){fInt[f.k]=v; var el=$('fs_'+f.k); if(el)el.value=v;}});}
+  if(s.ai){
+    if(typeof s.ai.seat==='number'){ai.seat=s.ai.seat; if($('aiSeat'))$('aiSeat').value=ai.seat;}
+    if(typeof s.ai.agent==='number'){ai.agent=s.ai.agent; if($('aiAgent'))$('aiAgent').value=ai.agent;}
+    if(typeof s.ai.plat==='number'){ai.plat=s.ai.plat; if($('aiPlat'))$('aiPlat').value=Math.round(ai.plat*100);}
+    recalcAiPlan();
+  }
+  if(s.comp){COMP_ROWS.forEach(function(k){if(typeof s.comp[k]==='number')comp[k]=s.comp[k];});}  // render() repaints the comp inputs from comp[]
+  if(typeof s.year==='number'){year=s.year; document.querySelectorAll('.ypill').forEach(function(x){x.classList.toggle('on', +x.dataset.y===year);});}
+  render();
+}
+window.addEventListener('message',function(e){
+  var d=e.data||{};
+  if(d.type==='kee-sim-apply'){ __keeApplyState(d.state); }
+  else if(d.type==='kee-sim-get'){ try{(e.source||parent).postMessage({type:'kee-sim-state', reqId:d.reqId, state:__keeGetState()},'*');}catch(_){} }
+});
+try{ parent.postMessage({type:'kee-sim-ready'},'*'); }catch(e){}
+})();
+</script>
+</body>
+</html>

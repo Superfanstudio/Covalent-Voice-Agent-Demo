@@ -57,6 +57,7 @@ const STATIC = {
   "/": ["index.html", "text/html; charset=utf-8"],
   "/index.html": ["index.html", "text/html; charset=utf-8"],
   "/personas.js": ["personas.js", "text/javascript; charset=utf-8"],
+  "/finance-sim.html": ["finance-sim.html", "text/html; charset=utf-8"],
   "/data/depts.json": ["data/depts.json", "application/json; charset=utf-8"],
   "/covalent-medical-logo.svg": ["covalent-medical-logo.svg", "image/svg+xml; charset=utf-8"],
 };
